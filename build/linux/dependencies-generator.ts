@@ -12,6 +12,7 @@ import { referenceGeneratedDepsByArch as rpmGeneratedDeps } from './rpm/dep-list
 import { type DebianArchString, isDebianArchString } from './debian/types.ts';
 import { isRpmArchString, type RpmArchString } from './rpm/types.ts';
 import product from '../../product.json' with { type: 'json' };
+import { offlineDebAmd64Deps } from './offline-dependencies.ts';
 
 // A flag that can easily be toggled.
 // Make sure to compile the build directory after toggling the value.
@@ -84,14 +85,14 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 		return !bundledDeps.some(bundledDep => dependency.startsWith(bundledDep));
 	}).sort();
 
-	const referenceGeneratedDeps = packageType === 'deb' ?
-		debianGeneratedDeps[arch as DebianArchString] :
-		rpmGeneratedDeps[arch as RpmArchString];
+	const referenceGeneratedDeps = product.applicationName === 'code-offline' && packageType === 'deb' && arch === 'amd64' ?
+		offlineDebAmd64Deps : packageType === 'deb' ?
+			debianGeneratedDeps[arch as DebianArchString] : rpmGeneratedDeps[arch as RpmArchString];
 	if (JSON.stringify(sortedDependencies) !== JSON.stringify(referenceGeneratedDeps)) {
 		const failMessage = 'The dependencies list has changed.'
 			+ '\nOld:\n' + referenceGeneratedDeps.join('\n')
 			+ '\nNew:\n' + sortedDependencies.join('\n');
-		if (FAIL_BUILD_FOR_NEW_DEPENDENCIES && (product.applicationName !== 'code-offline' || sortedDependencies.some(dep => !referenceGeneratedDeps.includes(dep)))) {
+		if (FAIL_BUILD_FOR_NEW_DEPENDENCIES) {
 			throw new Error(failMessage);
 		} else {
 			console.warn(failMessage);
