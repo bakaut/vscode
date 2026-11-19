@@ -96,3 +96,80 @@ jobs:
           path: dist/SHA256SUMS
           archive: false
           if-no-files-found: error
+  macos:
+    name: macOS (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+            node_memory: 4096
+          - arch: x64
+            runner: macos-15-intel
+            node_memory: 8192
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=${{ matrix.node_memory }}
+      VSCODE_SEQUENTIAL_NATIVE_INSTALLS: '1'
+      VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL: '1'
+      VSCODE_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Verify native runner and tools
+        run: |
+          test "$(node -p 'process.arch')" = "$VSCODE_ARCH"
+          xcode-select -p
+          python3 --version
+          df -h .
+      - name: Install pinned pnpm
+        run: npm install -g "$(node -p 'require("./package.json").packageManager')"
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build desktop
+        run: pnpm run gulp "vscode-darwin-$VSCODE_ARCH-min"
+      - name: Sign app for local testing
+        run: |
+          app="../VSCode-darwin-$VSCODE_ARCH/Code Offline.app"
+          test -d "$app"
+          codesign --force --deep --sign - --timestamp=none "$app"
+          codesign --verify --deep --strict "$app"
+      - name: Verify offline app and local VSIX
+        run: |
+          bash -n scripts/offline/smoke-macos.sh
+          bash scripts/offline/smoke-macos.sh "../VSCode-darwin-$VSCODE_ARCH/Code Offline.app" "$VSCODE_ARCH"
+      - name: Package DMG
+        run: |
+          mkdir -p dist
+          stage=$(mktemp -d)
+          trap 'rm -rf "$stage"' EXIT
+          ditto "../VSCode-darwin-$VSCODE_ARCH/Code Offline.app" "$stage/Code Offline.app"
+          ln -s /Applications "$stage/Applications"
+          version=$(node -p 'require("./package.json").version')
+          dmg="dist/code-offline-$version-macos-$VSCODE_ARCH.dmg"
+          hdiutil create -volname "Code Offline" -srcfolder "$stage" -format UDZO -ov "$dmg"
+          hdiutil verify "$dmg"
+          (cd dist && shasum -a 256 *.dmg > "SHA256SUMS-macos-$VSCODE_ARCH")
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-smoke-diagnostics-macos-${{ matrix.arch }}
+          path: offline-diagnostics/
+          if-no-files-found: ignore
+      - name: Upload DMG (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/*.dmg
+          archive: false
+          if-no-files-found: error
+      - name: Upload SHA256 checksums (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/SHA256SUMS-macos-${{ matrix.arch }}
+          archive: false
+          if-no-files-found: error
