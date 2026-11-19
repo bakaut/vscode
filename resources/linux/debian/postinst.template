@@ -4,6 +4,10 @@
 # Licensed under the MIT License. See License.txt in the project root for license information.
 set -e
 ln -sfn /usr/share/@@NAME@@/bin/@@NAME@@ /usr/bin/@@NAME@@
+if [ -f /usr/share/@@NAME@@/chrome-sandbox ]; then
+    chown root:root /usr/share/@@NAME@@/chrome-sandbox
+    chmod 4755 /usr/share/@@NAME@@/chrome-sandbox
+fi
 update-alternatives --install /usr/bin/editor editor /usr/bin/@@NAME@@ 0
 if command -v update-desktop-database >/dev/null; then update-desktop-database; fi
 if command -v update-mime-database >/dev/null; then update-mime-database /usr/share/mime; fi

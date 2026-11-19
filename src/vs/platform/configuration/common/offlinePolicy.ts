@@ -1,0 +1,21 @@
+/* Code Offline: immutable effective configuration for background services. */
+export const offlineSettings: Readonly<Record<string, string | boolean>> = Object.freeze({
+	'chat.disableAIFeatures': true,
+	'chat.agent.enabled': false,
+	'chat.editor.localAgent.enabled': false,
+	'chat.copilotCliCommand.enabled': false,
+	'extensions.autoUpdate': 'off',
+	'extensions.autoCheckUpdates': false,
+	'extensions.ignoreRecommendations': true,
+	'extensions.showRecommendationsOnlyOnDemand': true,
+	'update.mode': 'none',
+	'telemetry.telemetryLevel': 'off',
+	'telemetry.enableTelemetry': false,
+	'telemetry.enableCrashReporter': false,
+	'workbench.enableExperiments': false,
+	'json.schemaDownload.enable': false,
+	'typescript.disableAutomaticTypeAcquisition': true,
+	'git.autofetch': false,
+	'git.terminalAuthentication': false,
+	'npm.fetchOnlinePackageInfo': false,
+});

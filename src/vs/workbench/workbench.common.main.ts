@@ -366,8 +366,6 @@ import './contrib/modernUI/browser/modernUI.contribution.js';
 import './contrib/tasks/browser/task.contribution.js';
 
 // Remote
-import './contrib/remote/common/remote.contribution.js';
-import './contrib/remote/browser/remote.contribution.js';
 
 // Emmet
 import './contrib/emmet/browser/emmet.contribution.js';
@@ -400,7 +398,6 @@ import './contrib/inlayHints/browser/inlayHintsAccessibilty.js';
 import './contrib/themes/browser/themes.contribution.js';
 
 // Update
-import './contrib/update/browser/update.contribution.js';
 
 // Surveys
 
@@ -415,9 +412,6 @@ import './contrib/welcomeOnboarding/browser/welcomeOnboarding.contribution.js';
 
 // Onboarding (scenario engine)
 import './contrib/onboarding/browser/onboarding.contribution.js';
-import './contrib/chat/browser/onboarding/modelPickerTryout.contribution.js';
-import './contrib/chat/browser/onboarding/chatInputSpotlightTour.js';
-import './contrib/chat/browser/onboarding/agentPickerSpotlight.contribution.js';
 import './contrib/codeEditor/browser/diffEditorTryout.contribution.js';
 
 // Call Hierarchy
@@ -437,10 +431,8 @@ import './contrib/languageDetection/browser/languageDetection.contribution.js';
 import './contrib/languageStatus/browser/languageStatus.contribution.js';
 
 // Authentication
-import './contrib/authentication/browser/authentication.contribution.js';
 
 // User Data Sync
-import './contrib/userDataSync/browser/userDataSync.contribution.js';
 
 // User Data Profiles
 import './contrib/userDataProfile/browser/userDataProfile.contribution.js';

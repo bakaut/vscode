@@ -38,7 +38,7 @@ export class AllowedExtensionsService extends Disposable implements IAllowedExte
 	readonly onDidChangeAllowedExtensionsConfigValue = this._onDidChangeAllowedExtensions.event;
 
 	constructor(
-		@IProductService productService: IProductService,
+		@IProductService private readonly productService: IProductService,
 		@IConfigurationService protected readonly configurationService: IConfigurationService
 	) {
 		super();
@@ -65,6 +65,12 @@ export class AllowedExtensionsService extends Disposable implements IAllowedExte
 	}
 
 	isAllowed(extension: IGalleryExtension | IExtension | { id: string; publisherDisplayName: string | undefined; version?: string; prerelease?: boolean; targetPlatform?: TargetPlatform }): true | IMarkdownString {
+		if (this.productService.applicationName === 'code-offline') {
+			const id = isGalleryExtension(extension) || isIExtension(extension) ? extension.identifier.id : extension.id;
+			if (/^github\.copilot(?:-|$)/i.test(id)) {
+				return new MarkdownString('Copilot is not supported in Code Offline.');
+			}
+		}
 		if (!this._allowedExtensionsConfigValue) {
 			return true;
 		}

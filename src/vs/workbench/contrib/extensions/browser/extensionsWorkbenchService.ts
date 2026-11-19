@@ -1221,6 +1221,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	private initializeAutoUpdate(): void {
+		if (this.productService.applicationName === 'code-offline') { return; }
 		// Register listeners for auto updates
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration(AutoUpdateConfigurationKey)) {
@@ -1312,6 +1313,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	getAutoUpdateValue(): AutoUpdateConfigurationValue {
+		if (this.productService.applicationName === 'code-offline') { return 'off'; }
 		const autoUpdate = this.configurationService.getValue<AutoUpdateConfigurationValue | boolean | 'onlyEnabledExtensions' | 'onlySelectedExtensions' | 'delayed'>(AutoUpdateConfigurationKey);
 		if (autoUpdate === 'off' || autoUpdate === false || autoUpdate === 'onlySelectedExtensions') {
 			return 'off';
@@ -2345,6 +2347,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
 	}
 
 	private isAutoCheckUpdatesEnabled(): boolean {
+		if (this.productService.applicationName === 'code-offline') { return false; }
 		if (this.meteredConnectionService.isConnectionMetered) {
 			return false;
 		}

@@ -11,3 +11,5 @@ Install extensions using **Extensions: Install from VSIX** or `code-offline --in
 ## Scope and remaining acceptance gates
 
 This first PR is deliberately incremental: upstream AI service interfaces and shared registrations remain for compatibility; some dormant AI UI and code may remain. It does not claim complete AI code removal or zero network at the OS level. The build uses upstream dependencies (including some build-only AI dependencies) from the network. Verify package contents, desktop startup, local extension install, no external core connections under tracing, and audit third-party extensions separately before declaring full offline certification.
+
+The effective configuration locks telemetry off, AI features off, extension updates/recommendations off, Git autofetch off, automatic JSON schema and TypeScript type acquisition off. The extension search box searches installed extensions. These restrictions do not disable local language analysis, shell commands or explicit external applications.

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../../../platform/product/common/product.js';
 import './media/extensionsViewlet.css';
 import { localize, localize2 } from '../../../../nls.js';
 import { timeout, Delayer } from '../../../../base/common/async.js';
@@ -643,7 +644,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 		hide(overlay);
 
 		this.header = append(this.root, $('.header'));
-		const placeholder = localize('searchExtensions', "Search Extensions in Marketplace");
+		const placeholder = product.applicationName === 'code-offline' ? localize('searchLocalExtensions', "Search Installed Extensions") : localize('searchExtensions', "Search Extensions in Marketplace");
 
 		const searchValue = this.searchViewletState['query.value'] ? this.searchViewletState['query.value'] : '';
 
@@ -911,6 +912,10 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer<IExtensionsVi
 	}
 
 	private normalizedQuery(): string {
+		const localQuery = this.searchBox?.getValue().trim() ?? '';
+		if (product.applicationName === 'code-offline' && localQuery && !ExtensionsListView.isLocalExtensionsQuery(localQuery)) {
+			return `@installed ${localQuery}`;
+		}
 		return this.searchBox
 			? this.searchBox.getValue()
 				.trim()

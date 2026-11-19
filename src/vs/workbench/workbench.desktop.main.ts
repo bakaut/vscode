@@ -149,7 +149,6 @@ import './contrib/screenshotTool/electron-browser/screenshotTool.contribution.js
 import './contrib/processExplorer/electron-browser/processExplorer.contribution.js';
 
 // Remote
-import './contrib/remote/electron-browser/remote.contribution.js';
 
 // Workspaces
 import './contrib/workspaces/electron-browser/workspaces.contribution.js';
@@ -161,7 +160,6 @@ import './contrib/terminal/electron-browser/terminal.contribution.js';
 import './contrib/themes/browser/themes.test.contribution.js';
 import './services/themes/electron-browser/themes.contribution.js';
 // User Data Sync
-import './contrib/userDataSync/electron-browser/userDataSync.contribution.js';
 
 // Tags
 import './contrib/tags/electron-browser/workspaceTagsService.js';
@@ -179,7 +177,6 @@ import './contrib/externalTerminal/electron-browser/externalTerminal.contributio
 import './contrib/webview/electron-browser/webview.contribution.js';
 
 // Browser
-import './contrib/browserView/electron-browser/browserView.contribution.js';
 import './contrib/canvases/electron-browser/editorCanvases.contribution.js';
 
 // Splash
@@ -198,7 +195,6 @@ import './contrib/multiDiffEditor/browser/multiDiffEditor.contribution.js';
 
 // Chat
 import './contrib/chat/electron-browser/chat.contribution.js';
-import './contrib/chat/electron-browser/tunnelHost.contribution.js';
 
 // Copilot Voice
 

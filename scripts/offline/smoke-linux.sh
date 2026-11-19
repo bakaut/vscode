@@ -6,7 +6,7 @@ test "$(dpkg-deb -f "$deb" Architecture)" = amd64
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 dpkg-deb -e "$deb" "$tmp/control"
-! grep -Ei 'packages\.microsoft\.com|apt-key|vscode\.sources|vscode_copilot_link|curl|wget' "$tmp/control/postinst" "$tmp/control/postrm"
+if grep -Ei 'packages\.microsoft\.com|apt-key|vscode\.sources|vscode_copilot_link|curl|wget' "$tmp/control/postinst" "$tmp/control/postrm"; then exit 1; fi
 dpkg-deb -x "$deb" "$tmp/root"
 app="$tmp/root/usr/share/code-offline/resources/app"
 test -f "$app/product.json"
@@ -19,7 +19,33 @@ NODE
 if find "$app" -type f -path '*/@microsoft/copilot-sdk*/*' -print -quit | grep -q .; then
   echo 'Copilot runtime present in package'; exit 1
 fi
-bin="$tmp/root/usr/share/code-offline/bin/code-offline"
+node - "$app/node_modules.asar" <<'NODE'
+const fs = require('node:fs');
+const fd = fs.openSync(process.argv[2], 'r');
+const header = Buffer.alloc(16);
+fs.readSync(fd, header, 0, 16, 0);
+const length = header.readUInt32LE(12);
+if (!length || length > 100000000) throw Error('Invalid ASAR header');
+const json = Buffer.alloc(length);
+fs.readSync(fd, json, 0, length, 16);
+fs.closeSync(fd);
+const tree = JSON.parse(json.toString());
+function walk(node, path = '') {
+  for (const [name, entry] of Object.entries(node.files || {})) {
+    const full = path + '/' + name;
+    if (/\/(?:@microsoft\/copilot-sdk(?:-[^/]+)?|@anthropic-ai\/sdk|@vscode\/copilot-api)(?:\/|$)/.test(full)) throw Error('AI SDK shipped: ' + full);
+    walk(entry, full);
+  }
+}
+walk(tree);
+NODE
+# Test the actual APT installation, not only extraction.
+apt_snapshot() { sudo find /etc/apt/sources.list.d /etc/apt/keyrings /usr/share/keyrings -type f -print0 | sort -z | sudo xargs -0 -r sha256sum; }
+apt_snapshot > "$tmp/apt-before"
+sudo apt-get install -y "$(realpath "$deb")"
+apt_snapshot > "$tmp/apt-after"
+diff -u "$tmp/apt-before" "$tmp/apt-after"
+bin=/usr/bin/code-offline
 mkdir -p "$tmp/vsix/extension" "$tmp/data" "$tmp/extensions"
 printf '%s\n' '{"name":"offline-smoke","displayName":"Offline Smoke","publisher":"offline-test","version":"1.0.0","engines":{"vscode":"^1.0.0"},"contributes":{"snippets":[{"language":"plaintext","path":"./snippets.json"}]}}' > "$tmp/vsix/extension/package.json"
 printf '%s\n' '{}' > "$tmp/vsix/extension/snippets.json"

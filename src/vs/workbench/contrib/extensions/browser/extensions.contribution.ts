@@ -143,7 +143,7 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
 					localize('extensions.autoUpdate.off', 'Extensions are not automatically updated.'),
 				],
 				description: localize('extensions.autoUpdate', "Controls the automatic update behavior of extensions. The updates are fetched from a Microsoft online service."),
-				default: 'on',
+				default: 'off',
 				scope: ConfigurationScope.APPLICATION,
 				tags: ['usesOnlineServices'],
 				policy: {
@@ -189,14 +189,14 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
 			'extensions.autoCheckUpdates': {
 				type: 'boolean',
 				description: localize('extensionsCheckUpdates', "When enabled, automatically checks extensions for updates. If an extension has an update, it is marked as outdated in the Extensions view. The updates are fetched from a Microsoft online service."),
-				default: true,
+				default: false,
 				scope: ConfigurationScope.APPLICATION,
 				tags: ['usesOnlineServices']
 			},
 			'extensions.ignoreRecommendations': {
 				type: 'boolean',
 				description: localize('extensionsIgnoreRecommendations', "When enabled, the notifications for extension recommendations will not be shown."),
-				default: false,
+				default: true,
 				agentsWindow: { default: true, readOnly: true },
 			},
 			'extensions.showRecommendationsOnlyOnDemand': {

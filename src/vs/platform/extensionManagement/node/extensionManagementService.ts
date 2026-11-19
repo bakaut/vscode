@@ -150,7 +150,7 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 		try {
 			const manifest = await getManifest(path.resolve(location.fsPath));
 			const extensionId = getGalleryExtensionId(manifest.publisher, manifest.name);
-			if (this.productService.applicationName === 'code-offline' && /^github\\.copilot(?:-|$)/i.test(extensionId)) {
+			if (this.productService.applicationName === 'code-offline' && /^github\.copilot(?:-|$)/i.test(extensionId)) {
 				throw new ExtensionManagementError('Copilot is not supported in Code Offline.', ExtensionManagementErrorCode.NotAllowed);
 			}
 			if (manifest.engines && manifest.engines.vscode && !isEngineValid(manifest.engines.vscode, this.productService.version, this.productService.date)) {
