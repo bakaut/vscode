@@ -8,7 +8,7 @@ executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$bundle/Con
 electron="$bundle/Contents/MacOS/$executable"
 expected_arch="$arch"
 if [[ "$arch" == x64 ]]; then expected_arch=x86_64; fi
-lipo -verify_arch "$expected_arch" "$electron"
+lipo "$electron" -verify_arch "$expected_arch"
 codesign --verify --deep --strict "$bundle"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = io.github.bakaut.CodeOffline
 tmp=$(mktemp -d)

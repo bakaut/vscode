@@ -129,6 +129,8 @@ jobs:
       - name: Install pinned pnpm
         run: npm install -g "$(node -p 'require("./package.json").packageManager')"
       - name: Install locked dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: pnpm install --frozen-lockfile
       - name: Build desktop
         run: pnpm run gulp "vscode-darwin-$VSCODE_ARCH-min"
