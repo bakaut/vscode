@@ -138,7 +138,7 @@ export class NativeExtensionService extends AbstractExtensionService implements 
 		lifecycleService.when(LifecyclePhase.Ready).then(() => {
 			// reschedule to ensure this runs after restoring viewlets, panels, and editors
 			runWhenWindowIdle(mainWindow, () => {
-				this._initializeIfNeeded();
+				void this._initializeIfNeeded()?.catch(error => this._logService.error('Extension service initialization failed', error));
 			}, 50 /*max delay*/);
 		});
 	}

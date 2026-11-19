@@ -176,7 +176,8 @@ import './contrib/externalTerminal/electron-browser/externalTerminal.contributio
 // Webview
 import './contrib/webview/electron-browser/webview.contribution.js';
 
-// Browser
+// Browser — register upstream no-op implementations required by Extension Host RPC.
+import './contrib/browserView/browser/browserView.contribution.js';
 import './contrib/canvases/electron-browser/editorCanvases.contribution.js';
 
 // Splash

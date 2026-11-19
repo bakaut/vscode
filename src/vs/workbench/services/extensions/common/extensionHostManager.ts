@@ -158,7 +158,7 @@ export class ExtensionHostManager extends Disposable implements IExtensionHostMa
 			this._register(registerLatencyTestProvider({
 				measure: () => this.measure()
 			}));
-		});
+		}).catch(error => this._logService.error('Extension host RPC initialization failed', error));
 	}
 
 	public async disconnect(): Promise<void> {
