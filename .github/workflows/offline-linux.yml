@@ -26,7 +26,7 @@ jobs:
       - name: Install system build prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential python3 pkg-config libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev libgtk-3-dev libnss3 libasound2t64 libgbm1 libxss1 libxshmfence1 fakeroot rpm dpkg-dev xvfb xauth zip unzip strace
+          sudo apt-get install -y build-essential python3 pkg-config libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev libgtk-3-dev libnss3 libasound2t64 libgbm1 libxss1 libxshmfence1 fakeroot rpm dpkg-dev xvfb xauth dbus-x11 zip unzip strace
       - name: Install pinned pnpm
         run: npm install -g "$(node -p 'require("./package.json").packageManager')"
       - name: Install locked dependencies
@@ -53,6 +53,13 @@ jobs:
           (cd dist && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
       - name: Verify package and local VSIX
         run: bash scripts/offline/smoke-linux.sh dist/apt/*.deb
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-smoke-diagnostics
+          path: offline-diagnostics/
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@v4
         with:
           name: code-offline-linux-amd64

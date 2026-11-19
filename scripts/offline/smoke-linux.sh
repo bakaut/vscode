@@ -4,7 +4,22 @@ deb="$1"
 test "$(dpkg-deb -f "$deb" Package)" = code-offline
 test "$(dpkg-deb -f "$deb" Architecture)" = amd64
 tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT
+diagnostics="${OFFLINE_DIAGNOSTICS_DIR:-$PWD/offline-diagnostics}"
+mkdir -p "$diagnostics"
+cleanup() {
+  status=$?
+  if (( status != 0 )); then
+    echo "Smoke failed: $status"
+    if [[ -f "$tmp/desktop.log" ]]; then cp "$tmp/desktop.log" "$diagnostics/"; tail -n 150 "$tmp/desktop.log"; fi
+    if [[ -d "$tmp/data/logs" ]]; then
+      cp -a "$tmp/data/logs" "$diagnostics/workbench-logs"
+      find "$tmp/data/logs" -name '*.log' -type f -print -exec tail -n 80 {} \;
+    fi
+    if [[ -f "$tmp/network.log" ]]; then cp "$tmp/network.log" "$diagnostics/"; fi
+  fi
+  rm -rf "$tmp"
+}
+trap cleanup EXIT
 dpkg-deb -e "$deb" "$tmp/control"
 if grep -Ei 'packages\.microsoft\.com|apt-key|vscode\.sources|vscode_copilot_link|curl|wget' "$tmp/control/postinst" "$tmp/control/postrm"; then exit 1; fi
 dpkg-deb -x "$deb" "$tmp/root"
@@ -47,15 +62,15 @@ apt_snapshot > "$tmp/apt-after"
 diff -u "$tmp/apt-before" "$tmp/apt-after"
 bin=/usr/bin/code-offline
 mkdir -p "$tmp/vsix/extension" "$tmp/data" "$tmp/extensions"
-printf '%s\n' '{"name":"offline-smoke","displayName":"Offline Smoke","publisher":"offline-test","version":"1.0.0","engines":{"vscode":"^1.0.0"},"main":"./main.js","activationEvents":["onStartupFinished"],"contributes":{"snippets":[{"language":"plaintext","path":"./snippets.json"}]}}' > "$tmp/vsix/extension/package.json"
+printf '%s\n' '{"name":"offline-smoke","displayName":"Offline Smoke","publisher":"offline-test","version":"1.0.0","engines":{"vscode":"^1.0.0"},"main":"./main.js","activationEvents":["onStartupFinished"],"capabilities":{"untrustedWorkspaces":{"supported":true}},"contributes":{"snippets":[{"language":"plaintext","path":"./snippets.json"}]}}' > "$tmp/vsix/extension/package.json"
 printf '%s\n' '{}' > "$tmp/vsix/extension/snippets.json"
 cat > "$tmp/vsix/extension/main.js" <<'JS'
 const vscode = require('vscode');
 const fs = require('node:fs');
-exports.activate = () => {
+exports.activate = (context) => {
   const cfg = vscode.workspace.getConfiguration();
   const values = Object.fromEntries(['chat.disableAIFeatures','chat.mcp.access','telemetry.telemetryLevel','extensions.autoUpdate','git.autofetch'].map(k => [k, cfg.get(k)]));
-  fs.writeFileSync(process.env.CODE_OFFLINE_SMOKE_MARKER, JSON.stringify(values));
+  fs.writeFileSync(require('node:path').join(context.extensionPath, 'activated.json'), JSON.stringify(values));
 };
 JS
 printf '%s\n' '<?xml version="1.0" encoding="utf-8"?><PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Id="offline-smoke" Version="1.0.0" Publisher="offline-test"/><DisplayName>Offline Smoke</DisplayName></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/></Assets></PackageManifest>' > "$tmp/vsix/extension.vsixmanifest"
@@ -68,17 +83,21 @@ args=(--user-data-dir "$tmp/data" --extensions-dir "$tmp/extensions")
 # Verify that even deliberately conflicting user settings cannot re-enable online features.
 mkdir -p "$tmp/data/User" "$tmp/workspace"
 printf '%s\n' '{"chat.disableAIFeatures":false,"chat.mcp.access":"all","telemetry.telemetryLevel":"all","extensions.autoUpdate":"on","git.autofetch":true}' > "$tmp/data/User/settings.json"
-export CODE_OFFLINE_SMOKE_MARKER="$tmp/activated.json"
-xvfb-run -a bash -c '
-  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window "$4" > "$5" 2>&1 &
+export CODE_OFFLINE_SMOKE_MARKER="$tmp/extensions/offline-test.offline-smoke-1.0.0/activated.json"
+# A real D-Bus session and a clean Electron environment are required in CI.
+unset NODE_OPTIONS DBUS_SESSION_BUS_ADDRESS
+dbus-run-session -- xvfb-run -a bash -c '
+  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window --skip-welcome --skip-release-notes --verbose --log trace "$4" > "$5" 2>&1 &
   pid=$!
   trap "kill $pid 2>/dev/null || true" EXIT
-  for i in $(seq 1 90); do
+  for i in $(seq 1 120); do
     if test -s "$CODE_OFFLINE_SMOKE_MARKER"; then exit 0; fi
-    if ! kill -0 "$pid" 2>/dev/null; then cat "$5"; exit 1; fi
+    if ! kill -0 "$pid" 2>/dev/null; then echo "Desktop exited before activation"; exit 1; fi
     sleep 1
   done
-  cat "$5"; exit 1
+  echo "Desktop activation timed out"
+  ps -ef --forest | grep -E "code-offline|Xvfb" || true
+  exit 1
 ' bash /usr/share/code-offline/code-offline "$tmp/data" "$tmp/extensions" "$tmp/workspace" "$tmp/desktop.log"
 node - "$CODE_OFFLINE_SMOKE_MARKER" <<'NODE'
 const v = require(process.argv[2]);
