@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../../../platform/product/common/product.js';
 import { localize } from '../../../../nls.js';
 import { registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { SyncDescriptor } from '../../../../platform/instantiation/common/descriptors.js';
@@ -57,55 +58,57 @@ registerSingleton(IMcpRegistry, McpRegistry, InstantiationType.Delayed);
 registerSingleton(IMcpCopilotGlobalConfigurationService, McpCopilotGlobalConfigurationService, InstantiationType.Delayed);
 registerSingleton(IMcpSandboxService, McpSandboxService, InstantiationType.Delayed);
 registerSingleton(IMcpService, McpService, InstantiationType.Delayed);
-registerSingleton(IMcpWorkbenchService, McpWorkbenchService, InstantiationType.Eager);
+registerSingleton(IMcpWorkbenchService, McpWorkbenchService, InstantiationType.Delayed);
 AccessibleViewRegistry.register(new McpServerConfigurationFormAccessibilityHelp());
 registerSingleton(IMcpDevModeDebugging, McpDevModeDebugging, InstantiationType.Delayed);
 registerSingleton(IMcpSamplingService, McpSamplingService, InstantiationType.Delayed);
 registerSingleton(IMcpElicitationService, McpElicitationService, InstantiationType.Delayed);
 registerSingleton(IWorkbenchMcpGatewayService, BrowserMcpGatewayService, InstantiationType.Delayed);
 
-mcpDiscoveryRegistry.register(new SyncDescriptor(RemoteNativeMpcDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(InstalledMcpServersDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(ExtensionMcpDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(CursorWorkspaceMcpDiscoveryAdapter));
-mcpDiscoveryRegistry.register(new SyncDescriptor(WorkspaceDotMcpDiscovery));
-mcpDiscoveryRegistry.register(new SyncDescriptor(PluginMcpDiscovery));
+if (product.applicationName !== 'code-offline') {
+	mcpDiscoveryRegistry.register(new SyncDescriptor(RemoteNativeMpcDiscovery));
+	mcpDiscoveryRegistry.register(new SyncDescriptor(InstalledMcpServersDiscovery));
+	mcpDiscoveryRegistry.register(new SyncDescriptor(ExtensionMcpDiscovery));
+	mcpDiscoveryRegistry.register(new SyncDescriptor(CursorWorkspaceMcpDiscoveryAdapter));
+	mcpDiscoveryRegistry.register(new SyncDescriptor(WorkspaceDotMcpDiscovery));
+	mcpDiscoveryRegistry.register(new SyncDescriptor(PluginMcpDiscovery));
 
-registerWorkbenchContribution2('mcpDiscovery', McpDiscovery, WorkbenchPhase.AfterRestored);
-registerWorkbenchContribution2('mcpContextKeys', McpContextKeysController, WorkbenchPhase.BlockRestore);
-registerWorkbenchContribution2('mcpLanguageFeatures', McpLanguageFeatures, WorkbenchPhase.Eventually);
-registerWorkbenchContribution2('mcpResourceFilesystem', McpResourceFilesystem, WorkbenchPhase.BlockRestore);
-registerWorkbenchContribution2(McpLanguageModelToolContribution.ID, McpLanguageModelToolContribution, WorkbenchPhase.AfterRestored);
-registerWorkbenchContribution2('mcpGatewayToolBrokerRemote', McpGatewayToolBrokerContribution, WorkbenchPhase.AfterRestored);
+	registerWorkbenchContribution2('mcpDiscovery', McpDiscovery, WorkbenchPhase.AfterRestored);
+	registerWorkbenchContribution2('mcpContextKeys', McpContextKeysController, WorkbenchPhase.BlockRestore);
+	registerWorkbenchContribution2('mcpLanguageFeatures', McpLanguageFeatures, WorkbenchPhase.Eventually);
+	registerWorkbenchContribution2('mcpResourceFilesystem', McpResourceFilesystem, WorkbenchPhase.BlockRestore);
+	registerWorkbenchContribution2(McpLanguageModelToolContribution.ID, McpLanguageModelToolContribution, WorkbenchPhase.AfterRestored);
+	registerWorkbenchContribution2('mcpGatewayToolBrokerRemote', McpGatewayToolBrokerContribution, WorkbenchPhase.AfterRestored);
 
-registerAction2(ListMcpServerCommand);
-registerAction2(McpServerOptionsCommand);
-registerAction2(McpAgentHostServerOptionsCommand);
-registerAction2(McpAuthenticateAgentHostServerCommand);
-registerAction2(McpConfirmationServerOptionsCommand);
-registerAction2(ResetMcpTrustCommand);
-registerAction2(ResetMcpCachedTools);
-registerAction2(AddConfigurationAction);
-registerAction2(InstallFromManifestAction);
-registerAction2(RemoveStoredInput);
-registerAction2(EditStoredInput);
-registerAction2(SetOAuthClientSecret);
-registerAction2(StartServer);
-registerAction2(StopServer);
-registerAction2(ShowOutput);
-registerAction2(RestartServer);
-registerAction2(ShowConfiguration);
-registerAction2(McpBrowseCommand);
-registerAction2(McpBrowsePageCommand);
-registerAction2(OpenUserMcpResourceCommand);
-registerAction2(OpenRemoteUserMcpResourceCommand);
-registerAction2(OpenWorkspaceMcpResourceCommand);
-registerAction2(OpenWorkspaceFolderMcpResourceCommand);
-registerAction2(ShowInstalledMcpServersCommand);
-registerAction2(McpBrowseResourcesCommand);
-registerAction2(McpConfigureSamplingModels);
-registerAction2(McpStartPromptingServerCommand);
-registerAction2(McpSkipCurrentAutostartCommand);
+	registerAction2(ListMcpServerCommand);
+	registerAction2(McpServerOptionsCommand);
+	registerAction2(McpAgentHostServerOptionsCommand);
+	registerAction2(McpAuthenticateAgentHostServerCommand);
+	registerAction2(McpConfirmationServerOptionsCommand);
+	registerAction2(ResetMcpTrustCommand);
+	registerAction2(ResetMcpCachedTools);
+	registerAction2(AddConfigurationAction);
+	registerAction2(InstallFromManifestAction);
+	registerAction2(RemoveStoredInput);
+	registerAction2(EditStoredInput);
+	registerAction2(SetOAuthClientSecret);
+	registerAction2(StartServer);
+	registerAction2(StopServer);
+	registerAction2(ShowOutput);
+	registerAction2(RestartServer);
+	registerAction2(ShowConfiguration);
+	registerAction2(McpBrowseCommand);
+	registerAction2(McpBrowsePageCommand);
+	registerAction2(OpenUserMcpResourceCommand);
+	registerAction2(OpenRemoteUserMcpResourceCommand);
+	registerAction2(OpenWorkspaceMcpResourceCommand);
+	registerAction2(OpenWorkspaceFolderMcpResourceCommand);
+	registerAction2(ShowInstalledMcpServersCommand);
+	registerAction2(McpBrowseResourcesCommand);
+	registerAction2(McpConfigureSamplingModels);
+	registerAction2(McpStartPromptingServerCommand);
+	registerAction2(McpSkipCurrentAutostartCommand);
+}
 
 registerWorkbenchContribution2('mcpActionRendering', MCPServerActionRendering, WorkbenchPhase.BlockRestore);
 registerWorkbenchContribution2('mcpAddContext', McpAddContextContribution, WorkbenchPhase.Eventually);

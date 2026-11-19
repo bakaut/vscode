@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../../../platform/product/common/product.js';
 import { assertNever } from '../../../../base/common/assert.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Emitter } from '../../../../base/common/event.js';
@@ -502,6 +503,7 @@ export class McpRegistry extends Disposable implements IMcpRegistry {
 	}
 
 	public async resolveConnection(opts: IMcpResolveConnectionOptions): Promise<IMcpServerConnection | undefined> {
+		if (product.applicationName === 'code-offline') { return undefined; }
 		const { collectionRef, definitionRef, interaction, logger, debug } = opts;
 		let collection = this._collections.get().find(c => c.id === collectionRef.id);
 		if (collection && !this.isCollectionAllowed(collection, this._strictPluginOnlyCustomization.get())) {

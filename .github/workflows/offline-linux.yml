@@ -17,6 +17,7 @@ jobs:
     env:
       NODE_OPTIONS: --max-old-space-size=8192
       VSCODE_SEQUENTIAL_NATIVE_INSTALLS: '1'
+      VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,17 +31,23 @@ jobs:
         run: npm install -g "$(node -p 'require("./package.json").packageManager')"
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
+      - name: Check offline scripts
+        run: bash -n scripts/offline/smoke-linux.sh
       - name: Build desktop
         run: pnpm run gulp vscode-linux-x64-min
       - name: Build Debian and RPM packages
         run: |
-          pnpm run gulp vscode-linux-x64-prepare-deb vscode-linux-x64-build-deb
-          pnpm run gulp vscode-linux-x64-prepare-rpm vscode-linux-x64-build-rpm
+          pnpm run gulp vscode-linux-x64-prepare-deb
+          pnpm run gulp vscode-linux-x64-build-deb
+          pnpm run gulp vscode-linux-x64-prepare-rpm
+          pnpm run gulp vscode-linux-x64-build-rpm
       - name: Collect distribution
         run: |
           mkdir -p dist/apt
           find .build/linux/deb -name '*.deb' -exec cp {} dist/apt/ \;
           find .build/linux/rpm -name '*.rpm' -exec cp {} dist/ \;
+          test -n "$(find dist/apt -name '*.deb' -print -quit)"
+          test -n "$(find dist -name '*.rpm' -print -quit)"
           tar -C .. -czf dist/code-offline-linux-amd64.tar.gz VSCode-linux-x64
           (cd dist/apt && dpkg-scanpackages . /dev/null > Packages && gzip -n -c Packages > Packages.gz)
           (cd dist && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)

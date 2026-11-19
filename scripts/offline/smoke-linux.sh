@@ -47,8 +47,17 @@ apt_snapshot > "$tmp/apt-after"
 diff -u "$tmp/apt-before" "$tmp/apt-after"
 bin=/usr/bin/code-offline
 mkdir -p "$tmp/vsix/extension" "$tmp/data" "$tmp/extensions"
-printf '%s\n' '{"name":"offline-smoke","displayName":"Offline Smoke","publisher":"offline-test","version":"1.0.0","engines":{"vscode":"^1.0.0"},"contributes":{"snippets":[{"language":"plaintext","path":"./snippets.json"}]}}' > "$tmp/vsix/extension/package.json"
+printf '%s\n' '{"name":"offline-smoke","displayName":"Offline Smoke","publisher":"offline-test","version":"1.0.0","engines":{"vscode":"^1.0.0"},"main":"./main.js","activationEvents":["onStartupFinished"],"contributes":{"snippets":[{"language":"plaintext","path":"./snippets.json"}]}}' > "$tmp/vsix/extension/package.json"
 printf '%s\n' '{}' > "$tmp/vsix/extension/snippets.json"
+cat > "$tmp/vsix/extension/main.js" <<'JS'
+const vscode = require('vscode');
+const fs = require('node:fs');
+exports.activate = () => {
+  const cfg = vscode.workspace.getConfiguration();
+  const values = Object.fromEntries(['chat.disableAIFeatures','chat.mcp.access','telemetry.telemetryLevel','extensions.autoUpdate','git.autofetch'].map(k => [k, cfg.get(k)]));
+  fs.writeFileSync(process.env.CODE_OFFLINE_SMOKE_MARKER, JSON.stringify(values));
+};
+JS
 printf '%s\n' '<?xml version="1.0" encoding="utf-8"?><PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"><Metadata><Identity Id="offline-smoke" Version="1.0.0" Publisher="offline-test"/><DisplayName>Offline Smoke</DisplayName></Metadata><Installation><InstallationTarget Id="Microsoft.VisualStudio.Code"/></Installation><Assets><Asset Type="Microsoft.VisualStudio.Code.Manifest" Path="extension/package.json" Addressable="true"/></Assets></PackageManifest>' > "$tmp/vsix/extension.vsixmanifest"
 printf '%s\n' '<?xml version="1.0" encoding="utf-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="json" ContentType="application/json"/><Default Extension="vsixmanifest" ContentType="text/xml"/></Types>' > "$tmp/vsix/[Content_Types].xml"
 (cd "$tmp/vsix" && zip -qr "$tmp/test.vsix" .)
@@ -56,6 +65,33 @@ args=(--user-data-dir "$tmp/data" --extensions-dir "$tmp/extensions")
 "$bin" --version
 "$bin" "${args[@]}" --install-extension "$tmp/test.vsix"
 "$bin" "${args[@]}" --list-extensions | grep -Fx offline-test.offline-smoke
+# Verify that even deliberately conflicting user settings cannot re-enable online features.
+mkdir -p "$tmp/data/User" "$tmp/workspace"
+printf '%s\n' '{"chat.disableAIFeatures":false,"chat.mcp.access":"all","telemetry.telemetryLevel":"all","extensions.autoUpdate":"on","git.autofetch":true}' > "$tmp/data/User/settings.json"
+export CODE_OFFLINE_SMOKE_MARKER="$tmp/activated.json"
+xvfb-run -a bash -c '
+  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window "$4" > "$5" 2>&1 &
+  pid=$!
+  trap "kill $pid 2>/dev/null || true" EXIT
+  for i in $(seq 1 90); do
+    if test -s "$CODE_OFFLINE_SMOKE_MARKER"; then exit 0; fi
+    if ! kill -0 "$pid" 2>/dev/null; then cat "$5"; exit 1; fi
+    sleep 1
+  done
+  cat "$5"; exit 1
+' bash /usr/share/code-offline/code-offline "$tmp/data" "$tmp/extensions" "$tmp/workspace" "$tmp/desktop.log"
+node - "$CODE_OFFLINE_SMOKE_MARKER" <<'NODE'
+const v = require(process.argv[2]);
+const expected = {'chat.disableAIFeatures':true,'chat.mcp.access':'none','telemetry.telemetryLevel':'off','extensions.autoUpdate':'off','git.autofetch':false};
+for (const [k, x] of Object.entries(expected)) {
+  if (v[k] !== x) throw Error('Offline setting mismatch: ' + k + ': ' + v[k]);
+}
+NODE
+# Check native CLI network syscalls independently from the GUI.
+strace -f -qq -e trace=network -o "$tmp/network.log" "$bin" "${args[@]}" --list-extensions
+if grep -E 'connect\(.*sa_family=AF_INET6?,' "$tmp/network.log"; then
+  echo 'Unexpected network connection from local extension listing'; exit 1
+fi
 if "$bin" "${args[@]}" --install-extension github.copilot; then
   echo 'Unexpected gallery installation success'; exit 1
 fi

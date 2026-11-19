@@ -50,14 +50,16 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 	if (findResult.status) {
 		console.error('Error finding files:');
 		console.error(findResult.stderr.toString());
-		return [];
+		throw new Error('Failed to enumerate native modules for package dependencies.');
 	}
 
 	const appPath = path.join(buildDir, applicationName);
 	// Add the native modules
 	const files = findResult.stdout.toString().trimEnd().split('\n');
 	// Add the tunnel binary.
-	files.push(path.join(buildDir, 'bin', product.tunnelApplicationName));
+	if (product.applicationName !== 'code-offline') {
+		files.push(path.join(buildDir, 'bin', product.tunnelApplicationName));
+	}
 	// Add the main executable.
 	files.push(appPath);
 	// Add chrome sandbox and crashpad handler.
@@ -89,7 +91,7 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 		const failMessage = 'The dependencies list has changed.'
 			+ '\nOld:\n' + referenceGeneratedDeps.join('\n')
 			+ '\nNew:\n' + sortedDependencies.join('\n');
-		if (FAIL_BUILD_FOR_NEW_DEPENDENCIES) {
+		if (FAIL_BUILD_FOR_NEW_DEPENDENCIES && (product.applicationName !== 'code-offline' || sortedDependencies.some(dep => !referenceGeneratedDeps.includes(dep)))) {
 			throw new Error(failMessage);
 		} else {
 			console.warn(failMessage);
