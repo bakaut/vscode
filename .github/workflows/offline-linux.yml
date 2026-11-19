@@ -60,8 +60,39 @@ jobs:
           name: offline-smoke-diagnostics
           path: offline-diagnostics/
           if-no-files-found: ignore
-      - uses: actions/upload-artifact@v4
+      - name: Upload DEB package (raw file)
+        uses: actions/upload-artifact@v7
         with:
-          name: code-offline-linux-amd64
-          path: dist/
+          path: dist/apt/*.deb
+          archive: false
+          if-no-files-found: error
+      - name: Upload RPM package (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/*.rpm
+          archive: false
+          if-no-files-found: error
+      - name: Upload portable tar.gz (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/code-offline-linux-amd64.tar.gz
+          archive: false
+          if-no-files-found: error
+      - name: Upload APT Packages index (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/apt/Packages
+          archive: false
+          if-no-files-found: error
+      - name: Upload compressed APT index (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/apt/Packages.gz
+          archive: false
+          if-no-files-found: error
+      - name: Upload SHA256 checksums (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/SHA256SUMS
+          archive: false
           if-no-files-found: error
