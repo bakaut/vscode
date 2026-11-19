@@ -133,6 +133,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: pnpm install --frozen-lockfile
       - name: Build desktop
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: pnpm run gulp "vscode-darwin-$VSCODE_ARCH-min"
       - name: Sign app for local testing
         run: |
