@@ -12,7 +12,7 @@ import { referenceGeneratedDepsByArch as rpmGeneratedDeps } from './rpm/dep-list
 import { type DebianArchString, isDebianArchString } from './debian/types.ts';
 import { isRpmArchString, type RpmArchString } from './rpm/types.ts';
 import product from '../../product.json' with { type: 'json' };
-import { offlineDebAmd64Deps } from './offline-dependencies.ts';
+import { offlineDebAmd64Deps, offlineRpmX64Deps } from './offline-dependencies.ts';
 
 // A flag that can easily be toggled.
 // Make sure to compile the build directory after toggling the value.
@@ -86,7 +86,8 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 	}).sort();
 
 	const referenceGeneratedDeps = product.applicationName === 'code-offline' && packageType === 'deb' && arch === 'amd64' ?
-		offlineDebAmd64Deps : packageType === 'deb' ?
+		offlineDebAmd64Deps : product.applicationName === 'code-offline' && packageType === 'rpm' && arch === 'x86_64' ?
+			offlineRpmX64Deps : packageType === 'deb' ?
 			debianGeneratedDeps[arch as DebianArchString] : rpmGeneratedDeps[arch as RpmArchString];
 	if (JSON.stringify(sortedDependencies) !== JSON.stringify(referenceGeneratedDeps)) {
 		const failMessage = 'The dependencies list has changed.'
