@@ -428,6 +428,9 @@ export class CodeApplication extends Disposable {
 
 		session.defaultSession.webRequest.onBeforeRequest((details, callback) => {
 			const uri = URI.parse(details.url);
+			if (this.productService.applicationName === 'code-offline' && /^(https?|wss?|ftp)$/i.test(uri.scheme)) {
+				return callback({ cancel: true });
+			}
 			if (uri.scheme === Schemas.vscodeWebview) {
 				if (!isAllowedWebviewRequest(uri, details)) {
 					this.logService.error('Blocked vscode-webview request', details.url);

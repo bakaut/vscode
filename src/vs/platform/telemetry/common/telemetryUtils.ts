@@ -10,6 +10,7 @@ import { localize } from '../../../nls.js';
 import { IConfigurationService } from '../../configuration/common/configuration.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
 import { LoggerGroup } from '../../log/common/log.js';
+import product from '../../product/common/product.js';
 import { IProductService } from '../../product/common/productService.js';
 import { getRemoteName } from '../../remote/common/remoteHosts.js';
 import { verifyMicrosoftInternalDomain } from './commonProperties.js';
@@ -94,6 +95,7 @@ export interface URIDescriptor {
  * @returns false - telemetry is completely disabled, true - telemetry is logged locally, but may not be sent
  */
 export function supportsTelemetry(productService: IProductService, environmentService: IEnvironmentService): boolean {
+	if (productService.applicationName === 'code-offline') { return false; }
 	// If it's OSS and telemetry isn't disabled via the CLI we will allow it for logging only purposes
 	if (!environmentService.isBuilt && !environmentService.disableTelemetry) {
 		return true;
@@ -136,6 +138,7 @@ export function isLoggingOnly(productService: IProductService, environmentServic
  * @returns OFF, ERROR, ON
  */
 export function getTelemetryLevel(configurationService: IConfigurationService): TelemetryLevel {
+	if (product.applicationName === 'code-offline') { return TelemetryLevel.NONE; }
 	const newConfig = configurationService.getValue<TelemetryConfiguration>(TELEMETRY_SETTING_ID);
 	const crashReporterConfig = configurationService.getValue<boolean | undefined>(TELEMETRY_CRASH_REPORTER_SETTING_ID);
 	const oldConfig = configurationService.getValue<boolean | undefined>(TELEMETRY_OLD_SETTING_ID);

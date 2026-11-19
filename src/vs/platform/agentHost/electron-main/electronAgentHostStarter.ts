@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../product/common/product.js';
 import { DeferredPromise } from '../../../base/common/async.js';
 import { Disposable, DisposableMap, DisposableStore, toDisposable } from '../../../base/common/lifecycle.js';
 import { Emitter } from '../../../base/common/event.js';
@@ -144,6 +145,7 @@ export class ElectronAgentHostStarter extends Disposable implements IAgentHostSt
 	}
 
 	async start(): Promise<IAgentHostConnection> {
+		if (product.applicationName === 'code-offline') { throw new Error('Agent Host is disabled in Code Offline'); }
 		if (this.utilityProcess) {
 			throw new Error('Agent Host utility process is already running.');
 		}

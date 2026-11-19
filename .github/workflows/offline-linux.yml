@@ -1,0 +1,53 @@
+name: Offline Linux packages
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: offline-linux-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  linux-amd64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+      VSCODE_SEQUENTIAL_NATIVE_INSTALLS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install system build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 pkg-config libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev libgtk-3-dev libnss3 libasound2t64 libgbm1 libxss1 libxshmfence1 fakeroot rpm dpkg-dev xvfb xauth zip unzip strace
+      - name: Install pinned pnpm
+        run: npm install -g "$(node -p 'require("./package.json").packageManager')"
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build desktop
+        run: pnpm run gulp vscode-linux-x64-min
+      - name: Build Debian and RPM packages
+        run: |
+          pnpm run gulp vscode-linux-x64-prepare-deb vscode-linux-x64-build-deb
+          pnpm run gulp vscode-linux-x64-prepare-rpm vscode-linux-x64-build-rpm
+      - name: Collect distribution
+        run: |
+          mkdir -p dist/apt
+          find .build/linux/deb -name '*.deb' -exec cp {} dist/apt/ \;
+          find .build/linux/rpm -name '*.rpm' -exec cp {} dist/ \;
+          tar -C .. -czf dist/code-offline-linux-amd64.tar.gz VSCode-linux-x64
+          (cd dist/apt && dpkg-scanpackages . /dev/null > Packages && gzip -n -c Packages > Packages.gz)
+          (cd dist && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+      - name: Verify package and local VSIX
+        run: bash scripts/offline/smoke-linux.sh dist/apt/*.deb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: code-offline-linux-amd64
+          path: dist/
+          if-no-files-found: error

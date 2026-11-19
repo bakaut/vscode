@@ -368,6 +368,10 @@ const nativeExtensions = [
 
 const excludedExtensions = [
 	'copilot',
+	'github',
+	'github-authentication',
+	'microsoft-authentication',
+	'tunnel-forwarding',
 	'vscode-api-tests',
 	'vscode-colorize-tests',
 	'vscode-colorize-perf-tests',
