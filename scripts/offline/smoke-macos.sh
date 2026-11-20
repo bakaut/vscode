@@ -101,12 +101,13 @@ args=(--user-data-dir "$tmp/data" --extensions-dir "$tmp/extensions")
 "$bin" "${args[@]}" --install-extension "$tmp/test.vsix"
 "$bin" "${args[@]}" --list-extensions | grep -Fx offline-test.offline-smoke
 # Verify that even deliberately conflicting user settings cannot re-enable online features.
-mkdir -p "$tmp/data/User" "$tmp/workspace"
+mkdir -p "$tmp/data/User"
 printf '%s\n' '{"chat.disableAIFeatures":false,"chat.mcp.access":"all","telemetry.telemetryLevel":"all","extensions.autoUpdate":"on","git.autofetch":true}' > "$tmp/data/User/settings.json"
 export CODE_OFFLINE_SMOKE_MARKER="$tmp/extensions/offline-test.offline-smoke-1.0.0/activated.json"
 
 unset NODE_OPTIONS
-"$electron" --user-data-dir "$tmp/data" --extensions-dir "$tmp/extensions" --new-window --skip-welcome --skip-release-notes --verbose --log trace "$tmp/workspace" > "$tmp/desktop.log" 2>&1 &
+# Empty windows are trusted without disabling Workspace Trust globally.
+"$electron" --user-data-dir "$tmp/data" --extensions-dir "$tmp/extensions" --new-window --skip-welcome --skip-release-notes --verbose --log trace > "$tmp/desktop.log" 2>&1 &
 pid=$!
 for i in $(seq 1 120); do
   if [[ -s "$CODE_OFFLINE_SMOKE_MARKER" ]]; then break; fi
