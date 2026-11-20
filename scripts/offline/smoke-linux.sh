@@ -71,10 +71,21 @@ const vscode = require('vscode');
 const fs = require('node:fs');
 exports.activate = async (context) => {
   const bundled = ["eamodio.gitlens","ms-python.python","ms-python.vscode-python-envs","ms-python.debugpy","golang.Go","redhat.vscode-xml","redhat.vscode-yaml","mechatroner.rainbow-csv","oderwat.indent-rainbow","mads-hartmann.bash-ide-vscode","redhat.ansible","hashicorp.terraform"];
-  const extensionIds = new Set(vscode.extensions.all.map(e => e.id.toLowerCase()));
-  const missing = bundled.filter(id => !extensionIds.has(id.toLowerCase()));
-  fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-diagnostic.json'), JSON.stringify({missing, observed: [...extensionIds]}));
-  if (missing.length) throw Error('Bundled extensions not registered in Extension Host: ' + missing.join(', '));
+  // The extension host can activate onStartupFinished before all extension
+  // descriptions are registered. Wait for the registry to settle, without
+  // disabling the assertion or accepting missing bundled extensions.
+  const deadline = Date.now() + 45000;
+  let extensionIds;
+  let missing;
+  do {
+    extensionIds = new Set(vscode.extensions.all.map(e => e.id.toLowerCase()));
+    missing = bundled.filter(id => !extensionIds.has(id.toLowerCase()));
+    if (missing.length === 0) break;
+    if (Date.now() >= deadline) break;
+    await new Promise(resolve => setTimeout(resolve, 250));
+  } while (true);
+  fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-diagnostic.json'), JSON.stringify({missing, observed: [...extensionIds], waitedUntil: new Date().toISOString()}));
+  if (missing.length) throw Error('Bundled extensions not registered in Extension Host after 45s: ' + missing.join(', '));
   fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-registered.json'), JSON.stringify({count: bundled.length, ids: bundled}));
   // Local settings must remain writable without any account or cloud sync.
   await vscode.workspace.getConfiguration('editor').update('fontSize', 17, vscode.ConfigurationTarget.Global);
