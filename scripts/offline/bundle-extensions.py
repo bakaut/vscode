@@ -137,7 +137,7 @@ def check_installation(app, platform, entries):
         required(actual.lower() == entry['id'].lower(), 'Unexpected bundled identity: ' + entry['id'])
         required(manifest.get('version') == entry['version'], 'Bundled version mismatch: ' + entry['id'])
         count += 1
-    marker = ext_dir / '.code-offline-extensions.json'
+    marker = ext_dir / 'code-offline-extensions.json'
     required(marker.is_file(), 'Missing bundled VSIX attestation')
     data = json.loads(marker.read_text(encoding='utf-8'))
     required(data['platform'] == platform and data['extensions'] == [
@@ -170,7 +170,7 @@ def install(app, platform, entries):
         {'id': e['id'], 'version': e['version'], 'sha256': e['variants'].get(platform, e['variants'].get('universal'))}
         for e in entries
     ]}
-    (ext_dir / '.code-offline-extensions.json').write_text(json.dumps(marker, indent=2) + '\n', encoding='utf-8')
+    (ext_dir / 'code-offline-extensions.json').write_text(json.dumps(marker, indent=2) + '\n', encoding='utf-8')
     check_installation(app, platform, entries)
 
 

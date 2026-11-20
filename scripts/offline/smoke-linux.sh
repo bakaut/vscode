@@ -11,6 +11,7 @@ cleanup() {
   if (( status != 0 )); then
     echo "Smoke failed: $status"
     if [[ -f "$tmp/desktop.log" ]]; then cp "$tmp/desktop.log" "$diagnostics/"; tail -n 150 "$tmp/desktop.log"; fi
+    if [[ -d "$tmp/extensions/offline-test.offline-smoke-1.0.0" ]]; then cp "$tmp/extensions/offline-test.offline-smoke-1.0.0"/*diagnostic.json "$diagnostics/" 2>/dev/null || true; fi
     if [[ -d "$tmp/data/logs" ]]; then
       cp -a "$tmp/data/logs" "$diagnostics/workbench-logs"
       find "$tmp/data/logs" -name '*.log' -type f -print -exec tail -n 80 {} \;
@@ -72,7 +73,9 @@ exports.activate = async (context) => {
   const bundled = ["eamodio.gitlens","ms-python.python","ms-python.vscode-python-envs","ms-python.debugpy","golang.Go","redhat.vscode-xml","redhat.vscode-yaml","mechatroner.rainbow-csv","oderwat.indent-rainbow","mads-hartmann.bash-ide-vscode","redhat.ansible","hashicorp.terraform"];
   const extensionIds = new Set(vscode.extensions.all.map(e => e.id.toLowerCase()));
   const missing = bundled.filter(id => !extensionIds.has(id.toLowerCase()));
+  fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-diagnostic.json'), JSON.stringify({missing, observed: [...extensionIds]}));
   if (missing.length) throw Error('Bundled extensions not registered in Extension Host: ' + missing.join(', '));
+  fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-registered.json'), JSON.stringify({count: bundled.length, ids: bundled}));
   // Local settings must remain writable without any account or cloud sync.
   await vscode.workspace.getConfiguration('editor').update('fontSize', 17, vscode.ConfigurationTarget.Global);
   if (vscode.workspace.getConfiguration('editor').get('fontSize') !== 17) throw Error('Local settings were not saved');
