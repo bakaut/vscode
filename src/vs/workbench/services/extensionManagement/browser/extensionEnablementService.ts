@@ -516,6 +516,11 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
 			enablementState = EnablementState.EnabledByEnvironment;
 		}
 
+		// Code Offline diagnostic: explain why a pinned bundled extension is not enabled.
+		// This only logs the computed state; it does not modify enablement decisions.
+		if (['eamodio.gitlens', 'ms-python.python', 'ms-python.vscode-python-envs', 'ms-python.debugpy', 'golang.go', 'redhat.vscode-xml', 'redhat.vscode-yaml', 'mechatroner.rainbow-csv', 'oderwat.indent-rainbow', 'mads-hartmann.bash-ide-vscode', 'redhat.ansible', 'hashicorp.terraform'].includes(extension.identifier.id.toLowerCase())) {
+			this.logService.info('Code Offline bundled extension enablement diagnostic:', extension.identifier.id, 'state:', enablementState, 'isValid:', extension.isValid, 'isBuiltin:', extension.isBuiltin, 'type:', extension.type, 'validations:', extension.validations);
+		}
 		computedEnablementStates.set(extension, enablementState);
 		return enablementState;
 	}
