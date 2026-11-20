@@ -1,6 +1,6 @@
-# Optional starter extensions — local VSIX only
+# Bundled starter extensions — local VSIX only
 
-Code Offline has **no Marketplace, account login, automatic VSIX download or extension update**. This catalog describes the requested set; it does **not** embed, download or redistribute third-party binaries. Each package must be independently reviewed for redistribution permissions, authenticity, license and background network activity.
+Code Offline has **no runtime Marketplace, account login, VSIX download or extension update**. GitHub Actions downloads pinned, open-source VSIX assets from Open VSX at build time, verifies SHA256 and publisher/version, and includes them in DEB, RPM and each macOS DMG. The source repository contains only a version+checksum lockfile and build script; actual VSIX binaries are distributed inside the installers. Review each upstream license and background activity before further redistribution.
 
 ## Extensions
 
@@ -14,7 +14,9 @@ Code Offline has **no Marketplace, account login, automatic VSIX download or ext
 - `mads-hartmann.bash-ide-vscode` — **Bash IDE**. Shell language server и инструменты устанавливаются локально
 - `redhat.ansible` — **Ansible**. Ansible language server и ansible-lint локально; телеметрия отключена
 
-## Local installation
+The set also includes **HashiCorp Terraform**, plus **Python Environments** and **Python Debugger** required for an improved Python/Ansible experience. The proprietary Microsoft Pylance extension is excluded. Some language tools (gopls, ansible-lint, Bash tools, Java runtime) still require local installation.
+
+## Optional manual local installation
 
 Collect the trusted VSIX archives on a machine allowed to download them. Copy them via a trusted medium into one directory named exactly by extension ID, e.g. `eamodio.gitlens.vsix`, `golang.go.vsix`. Check the license and checksum from a trustworthy source. Then, on the target computer with the source tree and Node.js installed:
 

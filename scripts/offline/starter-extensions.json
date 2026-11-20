@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "description": "Optional trusted local VSIX starter pack: does not access any marketplace or network",
+  "description": "Bundled into Code Offline installers during CI. Optional separate local VSIX importer retained for manual replacement.",
   "extensions": [
     {
       "id": "eamodio.gitlens",
@@ -46,6 +46,11 @@
       "id": "redhat.ansible",
       "name": "Ansible",
       "note": "Ansible language server и ansible-lint локально; телеметрия отключена"
+    },
+    {
+      "id": "hashicorp.terraform",
+      "name": "HashiCorp Terraform",
+      "note": "Языковой сервер поставляется для конкретной ОС и архитектуры; MCP и телеметрия выключены"
     }
   ]
 }

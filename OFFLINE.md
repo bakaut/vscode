@@ -23,3 +23,9 @@ Native GitHub-hosted macOS 15 runners build arm64 (Apple Silicon) and x64 (Intel
 The Code Offline desktop application suppresses its GitHub/Default Account sign-in command, keeps the Accounts UI hidden, rejects new authentication sessions via the core service, keeps Settings Sync unconditionally off and does not show sign-in/onboarding on first launch. Settings, workspaces and profiles continue to persist **locally**. Git commands and third-party VSIX tools remain independent: external Git credential prompts and extensions that implement their own login/network functionality require separate policy.
 
 The requested optional starter set and its offline importer are documented in [scripts/offline/STARTER-EXTENSIONS.md](scripts/offline/STARTER-EXTENSIONS.md). External VSIX binaries are not shipped by default and require local review before installation.
+
+## Reproducible bundled language and Git extensions
+
+GitHub Actions downloads 12 stable, pinned Open VSX VSIX packages **at build time** and embeds them in the three native installers: GitLens Community, Python, Go, XML, YAML, Rainbow CSV, indent-rainbow, Bash IDE, Ansible, HashiCorp Terraform, Python Environments and Python Debugger. Each artifact's SHA256, publisher, version and ZIP safety are verified before packaging. Only allowed open-source licenses (MIT/EPL-2.0/MPL-2.0) are accepted. Package smoke tests confirm all 12 are present. Runtime never contacts Open VSX.
+
+See `scripts/offline/bundled-extensions.lock.json` and `scripts/offline/bundle-extensions.py`. No Pylance binary is shipped, and separate local system tools may be needed for full Go/Ansible/Bash/XML features. GitLens Pro/AI, Red Hat telemetry, Terraform MCP/telemetry and Ansible MCP are disabled by effective editor policy. Third-party VSIX code still has direct network capability if it ignores settings, therefore **this is not an extension network sandbox**.

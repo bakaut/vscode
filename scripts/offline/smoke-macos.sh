@@ -10,6 +10,7 @@ expected_arch="$arch"
 if [[ "$arch" == x64 ]]; then expected_arch=x86_64; fi
 lipo "$electron" -verify_arch "$expected_arch"
 codesign --verify --deep --strict "$bundle"
+python3 scripts/offline/bundle-extensions.py verify --platform "darwin-$arch" --app "$app"
 test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")" = io.github.bakaut.CodeOffline
 tmp=$(mktemp -d)
 diagnostics="${OFFLINE_DIAGNOSTICS_DIR:-$PWD/offline-diagnostics}"

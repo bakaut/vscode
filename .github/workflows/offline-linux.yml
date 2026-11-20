@@ -37,8 +37,11 @@ jobs:
         run: |
           bash -n scripts/offline/smoke-linux.sh
           node scripts/offline/install-starter-vsix.mjs --list
+          python3 -m py_compile scripts/offline/bundle-extensions.py
       - name: Build desktop
         run: pnpm run gulp vscode-linux-x64-min
+      - name: Bundle pinned VSIX extensions into Linux app
+        run: python3 scripts/offline/bundle-extensions.py install --platform linux-x64 --app ../VSCode-linux-x64/resources/app
       - name: Build Debian and RPM packages
         run: |
           pnpm run gulp vscode-linux-x64-prepare-deb
@@ -140,6 +143,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: pnpm run gulp "vscode-darwin-$VSCODE_ARCH-min"
+      - name: Bundle pinned VSIX extensions into macOS app
+        run: python3 scripts/offline/bundle-extensions.py install --platform darwin-$VSCODE_ARCH --app "../VSCode-darwin-$VSCODE_ARCH/Code Offline.app/Contents/Resources/app"
       - name: Sign app for local testing
         run: |
           app="../VSCode-darwin-$VSCODE_ARCH/Code Offline.app"

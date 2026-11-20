@@ -25,6 +25,7 @@ if grep -Ei 'packages\.microsoft\.com|apt-key|vscode\.sources|vscode_copilot_lin
 dpkg-deb -x "$deb" "$tmp/root"
 app="$tmp/root/usr/share/code-offline/resources/app"
 test -f "$app/product.json"
+python3 scripts/offline/bundle-extensions.py verify --platform linux-x64 --app "$app"
 test ! -d "$app/extensions/copilot"
 node - "$app/product.json" <<'NODE'
 const p = require(process.argv[2]);
