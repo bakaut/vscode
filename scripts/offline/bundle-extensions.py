@@ -17,6 +17,7 @@ import tempfile
 import time
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 import zipfile
 
 ROOT = Path(__file__).resolve().parent
@@ -66,7 +67,8 @@ def fetch_file(url, expected_hash, output):
         try:
             request = urllib.request.Request(url, headers={'User-Agent': 'CodeOffline-Build/1.0'})
             with urllib.request.urlopen(request, timeout=75) as response, output.open('wb') as target:
-                required(response.geturl().startswith('https://open-vsx.org/api/'), 'Unsafe redirect during VSIX download')
+                destination = urlsplit(response.geturl())
+                required(destination.scheme == 'https' and destination.hostname in ('open-vsx.org', 'openvsx.eclipsecontent.org'), 'Unsafe redirect during VSIX download')
                 digest = hashlib.sha256()
                 total = 0
                 while True:

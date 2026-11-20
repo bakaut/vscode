@@ -69,6 +69,10 @@ cat > "$tmp/vsix/extension/main.js" <<'JS'
 const vscode = require('vscode');
 const fs = require('node:fs');
 exports.activate = async (context) => {
+  const bundled = ["eamodio.gitlens","ms-python.python","ms-python.vscode-python-envs","ms-python.debugpy","golang.Go","redhat.vscode-xml","redhat.vscode-yaml","mechatroner.rainbow-csv","oderwat.indent-rainbow","mads-hartmann.bash-ide-vscode","redhat.ansible","hashicorp.terraform"];
+  const extensionIds = new Set(vscode.extensions.all.map(e => e.id.toLowerCase()));
+  const missing = bundled.filter(id => !extensionIds.has(id.toLowerCase()));
+  if (missing.length) throw Error('Bundled extensions not registered in Extension Host: ' + missing.join(', '));
   // Local settings must remain writable without any account or cloud sync.
   await vscode.workspace.getConfiguration('editor').update('fontSize', 17, vscode.ConfigurationTarget.Global);
   if (vscode.workspace.getConfiguration('editor').get('fontSize') !== 17) throw Error('Local settings were not saved');
