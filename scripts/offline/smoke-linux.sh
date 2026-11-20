@@ -84,7 +84,8 @@ exports.activate = async (context) => {
     if (Date.now() >= deadline) break;
     await new Promise(resolve => setTimeout(resolve, 250));
   } while (true);
-  fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-diagnostic.json'), JSON.stringify({missing, observed: [...extensionIds], waitedUntil: new Date().toISOString()}));
+  fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-diagnostic.json'), JSON.stringify({missing, observed: [...extensionIds], waitedUntil: new Date().toISOString()}, null, 2));
+  if (missing.length) console.error('Code Offline extension registry diagnostic:', JSON.stringify({missing, observed: [...extensionIds]}));
   if (missing.length) throw Error('Bundled extensions not registered in Extension Host after 45s: ' + missing.join(', '));
   fs.writeFileSync(require('node:path').join(context.extensionPath, 'extensions-registered.json'), JSON.stringify({count: bundled.length, ids: bundled}));
   // Local settings must remain writable without any account or cloud sync.
