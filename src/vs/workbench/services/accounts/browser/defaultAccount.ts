@@ -28,6 +28,7 @@ import { ILogService } from '../../../../platform/log/common/log.js';
 import { IFileManagedSettingsService, INativeManagedSettingsService, ManagedSettingsChannel, ManagedSettingsData, resolveForceRemoteSettingsRefresh } from '../../../../platform/policy/common/copilotManagedSettings.js';
 import { IManagedSettingsFreshness, IManagedSettingsFreshnessScope, isManagedSettingsFreshnessBlocking, isManagedSettingsFreshnessSatisfiedFor, MANAGED_SETTINGS_FRESHNESS_NOT_REQUIRED, ManagedSettingsFreshnessFailure, ManagedSettingsFreshnessState } from '../../../../platform/policy/common/managedSettingsFreshness.js';
 import { IProductService } from '../../../../platform/product/common/productService.js';
+import product from '../../../../platform/product/common/product.js';
 import { asJson, asText, IRequestService, isSuccess, readHeader, retryAfterFromHeaders } from '../../../../platform/request/common/request.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
@@ -156,6 +157,8 @@ export class DefaultAccountService extends Disposable implements IDefaultAccount
 	) {
 		super();
 		this.defaultAccountConfig = toDefaultAccountConfig(productService.defaultChatAgent);
+		// Offline builds never register an account provider. Resolve callers immediately.
+		if (productService.applicationName === 'code-offline') { this.initBarrier.open(); }
 	}
 
 	async getDefaultAccount(): Promise<IDefaultAccount | null> {
@@ -1671,6 +1674,9 @@ class DefaultAccountProviderContribution extends Disposable implements IWorkbenc
 	}
 }
 
+
+// No default GitHub account or sign-in command in Code Offline.
+if (product.applicationName !== 'code-offline') {
 registerAction2(class extends Action2 {
 	constructor() {
 		super({
@@ -1685,3 +1691,4 @@ registerAction2(class extends Action2 {
 });
 
 registerWorkbenchContribution2(DefaultAccountProviderContribution.ID, DefaultAccountProviderContribution, WorkbenchPhase.BlockStartup);
+}

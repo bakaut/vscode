@@ -111,6 +111,7 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 	}
 
 	private async run() {
+		if (this.productService.applicationName === 'code-offline') { return; }
 
 		// Wait for resolving startup editor until we are restored to reduce startup pressure
 		await this.lifecycleService.when(LifecyclePhase.Restored);
@@ -234,6 +235,7 @@ export class StartupPageRunnerContribution extends Disposable implements IWorkbe
 	}
 
 	private tryShowOnboarding(): void {
+		if (this.productService.applicationName === 'code-offline') { return; }
 		if (this.environmentService.skipWelcome) {
 			return; // skip welcome flag is set
 		}

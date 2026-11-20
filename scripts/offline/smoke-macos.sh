@@ -64,7 +64,10 @@ printf '%s\n' '{}' > "$tmp/vsix/extension/snippets.json"
 cat > "$tmp/vsix/extension/main.js" <<'JS'
 const vscode = require('vscode');
 const fs = require('node:fs');
-exports.activate = (context) => {
+exports.activate = async (context) => {
+  // Local settings must remain writable without any account or cloud sync.
+  await vscode.workspace.getConfiguration('editor').update('fontSize', 17, vscode.ConfigurationTarget.Global);
+  if (vscode.workspace.getConfiguration('editor').get('fontSize') !== 17) throw Error('Local settings were not saved');
   const cfg = vscode.workspace.getConfiguration();
   const values = Object.fromEntries(['chat.disableAIFeatures','chat.mcp.access','telemetry.telemetryLevel','extensions.autoUpdate','git.autofetch'].map(k => [k, cfg.get(k)]));
   fs.writeFileSync(require('node:path').join(context.extensionPath, 'activated.json'), JSON.stringify(values));

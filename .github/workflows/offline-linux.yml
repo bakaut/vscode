@@ -34,7 +34,9 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: pnpm install --frozen-lockfile
       - name: Check offline scripts
-        run: bash -n scripts/offline/smoke-linux.sh
+        run: |
+          bash -n scripts/offline/smoke-linux.sh
+          node scripts/offline/install-starter-vsix.mjs --list
       - name: Build desktop
         run: pnpm run gulp vscode-linux-x64-min
       - name: Build Debian and RPM packages

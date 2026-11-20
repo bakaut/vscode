@@ -1,5 +1,17 @@
 /* Code Offline: immutable effective configuration for background services. */
 export const offlineSettings: Readonly<Record<string, string | boolean>> = Object.freeze({
+	'workbench.startupEditor': 'none',
+	'workbench.welcomePage.experimentalOnboarding': false,
+	'workbench.welcomePage.walkthroughs.openOnInstall': false,
+	'gitlens.plusFeatures.enabled': false,
+	'gitlens.ai.enabled': false,
+	'gitlens.telemetry.enabled': false,
+	'gitlens.integrations.enabled': false,
+	'gitlens.graph.autoFetch.enabled': false,
+	'gitlens.gitkraken.mcp.autoEnabled': false,
+	'redhat.telemetry.enabled': false,
+	'go.toolsManagement.autoUpdate': false,
+	'python.experiments.enabled': false,
 	'chat.disableAIFeatures': true,
 	'chat.agent.enabled': false,
 	'chat.editor.localAgent.enabled': false,

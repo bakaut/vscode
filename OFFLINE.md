@@ -17,3 +17,9 @@ The effective configuration locks telemetry off, AI features off, extension upda
 ## macOS packages
 
 Native GitHub-hosted macOS 15 runners build arm64 (Apple Silicon) and x64 (Intel) DMG files separately. The app has its own bundle identifier. CI verifies the native executable architecture, ad-hoc signature, package contents, local VSIX installation and activation, and forced offline settings. Each DMG and SHA256 checksum is uploaded as a raw artifact. These builds are ad-hoc signed for testing, not Developer ID signed or Apple-notarized; normal Gatekeeper requirements still apply. The macOS smoke test does not constitute an OS-level network audit.
+
+## Local identity, startup, and optional extensions
+
+The Code Offline desktop application suppresses its GitHub/Default Account sign-in command, keeps the Accounts UI hidden, rejects new authentication sessions via the core service, keeps Settings Sync unconditionally off and does not show sign-in/onboarding on first launch. Settings, workspaces and profiles continue to persist **locally**. Git commands and third-party VSIX tools remain independent: external Git credential prompts and extensions that implement their own login/network functionality require separate policy.
+
+The requested optional starter set and its offline importer are documented in [scripts/offline/STARTER-EXTENSIONS.md](scripts/offline/STARTER-EXTENSIONS.md). External VSIX binaries are not shipped by default and require local review before installation.
