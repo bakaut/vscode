@@ -110,7 +110,8 @@ export CODE_OFFLINE_SMOKE_MARKER="$tmp/extensions/offline-test.offline-smoke-1.0
 # A real D-Bus session and a clean Electron environment are required in CI.
 unset NODE_OPTIONS DBUS_SESSION_BUS_ADDRESS
 dbus-run-session -- xvfb-run -a bash -c '
-  # An empty window is trusted by VS Code; do not bypass Workspace Trust.\n  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window --skip-welcome --skip-release-notes --verbose --log trace > "$4" 2>&1 &
+  # An empty window is trusted by VS Code; do not bypass Workspace Trust.
+  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window --skip-welcome --skip-release-notes --verbose --log trace > "$4" 2>&1 &
   pid=$!
   trap "kill $pid 2>/dev/null || true" EXIT
   for i in $(seq 1 120); do
