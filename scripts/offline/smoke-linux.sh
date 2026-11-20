@@ -104,13 +104,13 @@ args=(--user-data-dir "$tmp/data" --extensions-dir "$tmp/extensions")
 "$bin" "${args[@]}" --install-extension "$tmp/test.vsix"
 "$bin" "${args[@]}" --list-extensions | grep -Fx offline-test.offline-smoke
 # Verify that even deliberately conflicting user settings cannot re-enable online features.
-mkdir -p "$tmp/data/User" "$tmp/workspace"
+mkdir -p "$tmp/data/User"
 printf '%s\n' '{"chat.disableAIFeatures":false,"chat.mcp.access":"all","telemetry.telemetryLevel":"all","extensions.autoUpdate":"on","git.autofetch":true}' > "$tmp/data/User/settings.json"
 export CODE_OFFLINE_SMOKE_MARKER="$tmp/extensions/offline-test.offline-smoke-1.0.0/activated.json"
 # A real D-Bus session and a clean Electron environment are required in CI.
 unset NODE_OPTIONS DBUS_SESSION_BUS_ADDRESS
 dbus-run-session -- xvfb-run -a bash -c '
-  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window --skip-welcome --skip-release-notes --verbose --log trace "$4" > "$5" 2>&1 &
+  # An empty window is trusted by VS Code; do not bypass Workspace Trust.\n  "$1" --user-data-dir "$2" --extensions-dir "$3" --disable-gpu --new-window --skip-welcome --skip-release-notes --verbose --log trace > "$4" 2>&1 &
   pid=$!
   trap "kill $pid 2>/dev/null || true" EXIT
   for i in $(seq 1 120); do
@@ -121,7 +121,7 @@ dbus-run-session -- xvfb-run -a bash -c '
   echo "Desktop activation timed out"
   ps -ef --forest | grep -E "code-offline|Xvfb" || true
   exit 1
-' bash /usr/share/code-offline/code-offline "$tmp/data" "$tmp/extensions" "$tmp/workspace" "$tmp/desktop.log"
+' bash /usr/share/code-offline/code-offline "$tmp/data" "$tmp/extensions" "$tmp/desktop.log"
 node - "$CODE_OFFLINE_SMOKE_MARKER" <<'NODE'
 const v = require(process.argv[2]);
 const expected = {'chat.disableAIFeatures':true,'chat.mcp.access':'none','telemetry.telemetryLevel':'off','extensions.autoUpdate':'off','git.autofetch':false};
