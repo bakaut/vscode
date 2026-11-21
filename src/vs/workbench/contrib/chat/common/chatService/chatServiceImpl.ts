@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../../../../platform/product/common/product.js';
 import { DeferredPromise, raceCancellationError, raceTimeout } from '../../../../../base/common/async.js';
 import { affectsAgentHostProviderPreference, isLocalAgentHostProviderDisabledByPolicy } from '../../../../../platform/agentHost/common/agentService.js';
 import { IChatSessionHistoryStatus } from '../../../../../platform/chat/common/chatSessionHistory.js';
@@ -1582,6 +1583,9 @@ export class ChatService extends Disposable implements IChatService {
 	}
 
 	private async sendRequestInternal(sessionResource: URI, request: string, options: IChatSendRequestOptions | undefined, isSubmission: boolean): Promise<ChatSendResult> {
+		if (product.applicationName === 'code-offline') {
+			return { kind: 'rejected', reason: 'AI features are disabled in Code Offline.' };
+		}
 		if (isLocalChatSessionSubjectToManagedPolicy(sessionResource, this._sessionModels.get(sessionResource)?.initialLocation ?? ChatAgentLocation.Chat) && !this.policyInitialized) {
 			await whenAccountPolicySettled(this.accountPolicyGateService);
 		}

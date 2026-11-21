@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "source": "https://open-vsx.org/api",
+  "generated": "2026-11-20",
+  "description": "Pinned stable Open VSX VSIX assets. SHA256 confirmed against published per-asset checksum before commit.",
+  "platforms": [
+    "linux-x64",
+    "darwin-x64",
+    "darwin-arm64"
+  ],
+  "extensions": [
+    {
+      "id": "eamodio.gitlens",
+      "version": "19.6.0",
+      "license": "MIT",
+      "variants": {
+        "universal": "352c21ebc0cb6aa4f13bb5fd4e900f6e8ff01526d8f11d0aee716f94ceb2adf5"
+      }
+    },
+    {
+      "id": "ms-python.python",
+      "version": "2026.4.0",
+      "license": "MIT",
+      "variants": {
+        "universal": "232aeafb01f069824fdd92d3e628c1c442bbcfa1d3cc945ff97076340bb2b4a6"
+      }
+    },
+    {
+      "id": "ms-python.vscode-python-envs",
+      "version": "1.44.0",
+      "license": "MIT",
+      "variants": {
+        "universal": "4d134af74d6fde42fb35f28b6faac934017bb6b32ba9e05a9866b82b14d884c2"
+      }
+    },
+    {
+      "id": "ms-python.debugpy",
+      "version": "2026.6.0",
+      "license": "MIT",
+      "variants": {
+        "linux-x64": "c7744af4bf72978f5792624a71c80e2b622a1118574fada3a903d70ac03d5bca",
+        "darwin-x64": "7a87aeba6a4dc1f46cfb8e6d457e53256c80b5be75a1781d51d3e0ad5dbb1574",
+        "darwin-arm64": "3425b5251b0f0642b569e64397effe72ab141d138abd966b567041baa5609b4b"
+      }
+    },
+    {
+      "id": "golang.Go",
+      "version": "0.58.0",
+      "license": "MIT",
+      "variants": {
+        "universal": "bc638d118041fe91c2b437c7bc478adac9e1b9525490ab39770f4bf10f58a78d"
+      }
+    },
+    {
+      "id": "redhat.vscode-xml",
+      "version": "0.29.3",
+      "license": "EPL-2.0",
+      "variants": {
+        "linux-x64": "70ffe8167d7d099fc6de48dd1cd646a97be80c4d6a52d83ac6b83fd8c3b5e0ba",
+        "darwin-x64": "c2d93c49ab315c4437a42269553591f30718fdb35a21998899b02dac559858ea",
+        "darwin-arm64": "5d87705680ea2bef3c658526e803f26a614dc7a5e5623cb447808885232e4665"
+      }
+    },
+    {
+      "id": "redhat.vscode-yaml",
+      "version": "2.0.0",
+      "license": "MIT",
+      "variants": {
+        "universal": "4bba62ccda962b720dcb0829e85cf4109c94e86653dcd39fd7500c3687ad8c60"
+      }
+    },
+    {
+      "id": "mechatroner.rainbow-csv",
+      "version": "3.24.1",
+      "license": "MIT",
+      "variants": {
+        "universal": "0ecb7da3fb2a54517cd41fce8e858d6276ea8523bed6fbfd64d5ed281bd7514a"
+      }
+    },
+    {
+      "id": "oderwat.indent-rainbow",
+      "version": "8.3.1",
+      "license": "MIT",
+      "variants": {
+        "universal": "ef9545b7f62f91c69ae79356786e37ca78a20d2ac3e409eace107c8c9a8c8b99"
+      }
+    },
+    {
+      "id": "mads-hartmann.bash-ide-vscode",
+      "version": "1.43.2",
+      "license": "MIT",
+      "variants": {
+        "universal": "2eb16563ed946b801a45d3d298f0ca35a268d39656ea18f33062ff9d65fc04c2"
+      }
+    },
+    {
+      "id": "redhat.ansible",
+      "version": "26.11.0",
+      "license": "MIT",
+      "variants": {
+        "universal": "cddf23e42cf57c441256e47b2fd5df06ce8d34acc9560192aa3d922c69ef7ace"
+      }
+    },
+    {
+      "id": "hashicorp.terraform",
+      "version": "2.40.1",
+      "license": "MPL-2.0",
+      "variants": {
+        "linux-x64": "08b891a1febd928e7099cea0a75ff9a822e8ae3eb1523ac1b751e0d5f42ce657",
+        "darwin-x64": "a16d6b0076cd448b5e8735c93a6a9cba0db18c0b2c51346035a0952b15a12497",
+        "darwin-arm64": "02147a8e8f713451b41ffb578148a46ffe01f020dbd42e5b409f77d8fb17985b"
+      }
+    }
+  ]
+}

@@ -144,13 +144,11 @@ import './contrib/issue/electron-browser/issue.contribution.js';
 import './contrib/screenshotTool/electron-browser/screenshotTool.contribution.js';
 
 // Surveys
-import './contrib/surveys/browser/survey.contribution.js';
 
 // Process Explorer
 import './contrib/processExplorer/electron-browser/processExplorer.contribution.js';
 
 // Remote
-import './contrib/remote/electron-browser/remote.contribution.js';
 
 // Workspaces
 import './contrib/workspaces/electron-browser/workspaces.contribution.js';
@@ -162,7 +160,6 @@ import './contrib/terminal/electron-browser/terminal.contribution.js';
 import './contrib/themes/browser/themes.test.contribution.js';
 import './services/themes/electron-browser/themes.contribution.js';
 // User Data Sync
-import './contrib/userDataSync/electron-browser/userDataSync.contribution.js';
 
 // Tags
 import './contrib/tags/electron-browser/workspaceTagsService.js';
@@ -179,8 +176,8 @@ import './contrib/externalTerminal/electron-browser/externalTerminal.contributio
 // Webview
 import './contrib/webview/electron-browser/webview.contribution.js';
 
-// Browser
-import './contrib/browserView/electron-browser/browserView.contribution.js';
+// Browser — register upstream no-op implementations required by Extension Host RPC.
+import './contrib/browserView/browser/browserView.contribution.js';
 import './contrib/canvases/electron-browser/editorCanvases.contribution.js';
 
 // Splash
@@ -196,14 +193,11 @@ import './contrib/mergeEditor/electron-browser/mergeEditor.contribution.js';
 import './contrib/multiDiffEditor/browser/multiDiffEditor.contribution.js';
 
 // Remote Tunnel
-import './contrib/remoteTunnel/electron-browser/remoteTunnel.contribution.js';
 
 // Chat
 import './contrib/chat/electron-browser/chat.contribution.js';
-import './contrib/chat/electron-browser/tunnelHost.contribution.js';
 
 // Copilot Voice
-import './contrib/agentsVoice/electron-browser/agentsVoiceNativeCommands.js';
 
 // Encryption
 import './contrib/encryption/electron-browser/encryption.contribution.js';
@@ -212,7 +206,6 @@ import './contrib/encryption/electron-browser/encryption.contribution.js';
 import './contrib/modernUI/electron-browser/frostedGlass.contribution.js';
 
 // Emergency Alert
-import './contrib/emergencyAlert/electron-browser/emergencyAlert.contribution.js';
 
 // MCP
 import './contrib/mcp/electron-browser/mcp.contribution.js';

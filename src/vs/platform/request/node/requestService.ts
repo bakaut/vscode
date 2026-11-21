@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../product/common/product.js';
 import type * as http from 'http';
 import type * as https from 'https';
 import { parse as parseUrl } from 'url';
@@ -88,6 +89,7 @@ export class RequestService extends AbstractRequestService implements IRequestSe
 	}
 
 	async request(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {
+		if (product.applicationName === 'code-offline') { throw new Error('Code Offline: network requests are disabled'); }
 		const { proxyUrl, strictSSL } = this;
 
 		let shellEnv: typeof process.env | undefined = undefined;
@@ -214,6 +216,7 @@ function stripRedirectHeaders(headers: IHeaders | undefined, crossOrigin: boolea
 }
 
 export async function nodeRequest(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {
+	if (product.applicationName === 'code-offline') { throw new Error('Code Offline: network requests are disabled'); }
 	const maxRetries = 3;
 	let lastError: Error | undefined;
 	const isIdempotent = IDEMPOTENT_HTTP_METHODS_REGEX.test(options.type || 'GET');

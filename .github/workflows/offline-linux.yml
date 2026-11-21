@@ -1,0 +1,192 @@
+name: Offline Linux packages
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: offline-linux-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  linux-amd64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+      VSCODE_SEQUENTIAL_NATIVE_INSTALLS: '1'
+      VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Install system build prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential python3 pkg-config libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev libgtk-3-dev libnss3 libasound2t64 libgbm1 libxss1 libxshmfence1 fakeroot rpm dpkg-dev xvfb xauth dbus-x11 zip unzip strace
+      - name: Install pinned pnpm
+        run: npm install -g "$(node -p 'require("./package.json").packageManager')"
+      - name: Install locked dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm install --frozen-lockfile
+      - name: Check offline scripts
+        run: |
+          bash -n scripts/offline/smoke-linux.sh
+          node scripts/offline/install-starter-vsix.mjs --list
+          python3 -m py_compile scripts/offline/bundle-extensions.py
+      - name: Build desktop
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm run gulp vscode-linux-x64-min
+      - name: Bundle pinned VSIX extensions into Linux app
+        run: python3 scripts/offline/bundle-extensions.py install --platform linux-x64 --app ../VSCode-linux-x64/resources/app
+      - name: Build Debian and RPM packages
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          pnpm run gulp vscode-linux-x64-prepare-deb
+          pnpm run gulp vscode-linux-x64-build-deb
+          pnpm run gulp vscode-linux-x64-prepare-rpm
+          pnpm run gulp vscode-linux-x64-build-rpm
+      - name: Collect distribution
+        run: |
+          mkdir -p dist/apt
+          find .build/linux/deb -name '*.deb' -exec cp {} dist/apt/ \;
+          find .build/linux/rpm -name '*.rpm' -exec cp {} dist/ \;
+          test -n "$(find dist/apt -name '*.deb' -print -quit)"
+          test -n "$(find dist -name '*.rpm' -print -quit)"
+          tar -C .. -czf dist/code-offline-linux-amd64.tar.gz VSCode-linux-x64
+          (cd dist/apt && dpkg-scanpackages . /dev/null > Packages && gzip -n -c Packages > Packages.gz)
+          (cd dist && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+      - name: Verify package and local VSIX
+        run: bash scripts/offline/smoke-linux.sh dist/apt/*.deb
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-smoke-diagnostics
+          path: offline-diagnostics/
+          if-no-files-found: ignore
+      - name: Upload DEB package (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/apt/*.deb
+          archive: false
+          if-no-files-found: error
+      - name: Upload RPM package (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/*.rpm
+          archive: false
+          if-no-files-found: error
+      - name: Upload portable tar.gz (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/code-offline-linux-amd64.tar.gz
+          archive: false
+          if-no-files-found: error
+      - name: Upload APT Packages index (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/apt/Packages
+          archive: false
+          if-no-files-found: error
+      - name: Upload compressed APT index (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/apt/Packages.gz
+          archive: false
+          if-no-files-found: error
+      - name: Upload SHA256 checksums (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/SHA256SUMS
+          archive: false
+          if-no-files-found: error
+  macos:
+    name: macOS (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+            node_memory: 4096
+          - arch: x64
+            runner: macos-15-intel
+            node_memory: 8192
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 180
+    env:
+      NODE_OPTIONS: --max-old-space-size=${{ matrix.node_memory }}
+      VSCODE_SEQUENTIAL_NATIVE_INSTALLS: '1'
+      VSCODE_SKIP_FOUNDRY_LOCAL_INSTALL: '1'
+      VSCODE_ARCH: ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: Verify native runner and tools
+        run: |
+          test "$(node -p 'process.arch')" = "$VSCODE_ARCH"
+          xcode-select -p
+          python3 --version
+          df -h .
+      - name: Install pinned pnpm
+        run: npm install -g "$(node -p 'require("./package.json").packageManager')"
+      - name: Install locked dependencies
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm install --frozen-lockfile
+      - name: Build desktop
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: pnpm run gulp "vscode-darwin-$VSCODE_ARCH-min"
+      - name: Bundle pinned VSIX extensions into macOS app
+        run: python3 scripts/offline/bundle-extensions.py install --platform darwin-$VSCODE_ARCH --app "../VSCode-darwin-$VSCODE_ARCH/Code Offline.app/Contents/Resources/app"
+      - name: Sign app for local testing
+        run: |
+          app="../VSCode-darwin-$VSCODE_ARCH/Code Offline.app"
+          test -d "$app"
+          codesign --force --deep --sign - --timestamp=none "$app"
+          codesign --verify --deep --strict "$app"
+      - name: Verify offline app and local VSIX
+        run: |
+          bash -n scripts/offline/smoke-macos.sh
+          bash scripts/offline/smoke-macos.sh "../VSCode-darwin-$VSCODE_ARCH/Code Offline.app" "$VSCODE_ARCH"
+      - name: Package DMG
+        run: |
+          mkdir -p dist
+          stage=$(mktemp -d)
+          trap 'rm -rf "$stage"' EXIT
+          ditto "../VSCode-darwin-$VSCODE_ARCH/Code Offline.app" "$stage/Code Offline.app"
+          ln -s /Applications "$stage/Applications"
+          version=$(node -p 'require("./package.json").version')
+          dmg="dist/code-offline-$version-macos-$VSCODE_ARCH.dmg"
+          hdiutil create -volname "Code Offline" -srcfolder "$stage" -format UDZO -ov "$dmg"
+          hdiutil verify "$dmg"
+          (cd dist && shasum -a 256 *.dmg > "SHA256SUMS-macos-$VSCODE_ARCH")
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: offline-smoke-diagnostics-macos-${{ matrix.arch }}
+          path: offline-diagnostics/
+          if-no-files-found: ignore
+      - name: Upload DMG (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/*.dmg
+          archive: false
+          if-no-files-found: error
+      - name: Upload SHA256 checksums (raw file)
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/SHA256SUMS-macos-${{ matrix.arch }}
+          archive: false
+          if-no-files-found: error

@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../product/common/product.js';
+import { offlineSettings } from './offlinePolicy.js';
 import * as arrays from '../../../base/common/arrays.js';
 import { IStringDictionary } from '../../../base/common/collections.js';
 import { Emitter, Event } from '../../../base/common/event.js';
@@ -1070,6 +1072,13 @@ export class Configuration {
 			configurationModel = configurationModel.merge();
 			for (const key of this._policyConfiguration.keys) {
 				configurationModel.setValue(key, this._policyConfiguration.getValue(key));
+			}
+		}
+		if (product.applicationName === 'code-offline') {
+			const forced = Object.entries(offlineSettings).filter(([key, value]) => (!section || key === section || key.startsWith(`${section}.`)) && configurationModel.getValue(key) !== value);
+			if (forced.length) {
+				configurationModel = configurationModel.merge();
+				for (const [key, value] of forced) { configurationModel.setValue(key, value); }
 			}
 		}
 		return configurationModel;

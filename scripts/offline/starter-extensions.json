@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "description": "Bundled into Code Offline installers during CI. Optional separate local VSIX importer retained for manual replacement.",
+  "extensions": [
+    {
+      "id": "eamodio.gitlens",
+      "name": "GitLens Community",
+      "note": "Бесплатная часть; Pro/AI/integrations отключены политикой"
+    },
+    {
+      "id": "ms-python.python",
+      "name": "Python",
+      "note": "Дополнительные языковые серверы и debugger должны быть доступны локально"
+    },
+    {
+      "id": "golang.go",
+      "name": "Go",
+      "note": "gopls установить отдельно из локальных средств"
+    },
+    {
+      "id": "redhat.vscode-xml",
+      "name": "XML",
+      "note": "Поддержка XML; Java/runtime при необходимости локально"
+    },
+    {
+      "id": "redhat.vscode-yaml",
+      "name": "YAML",
+      "note": "Отключена Red Hat telemetry"
+    },
+    {
+      "id": "mechatroner.rainbow-csv",
+      "name": "Rainbow CSV",
+      "note": "Локальное отображение CSV/TSV"
+    },
+    {
+      "id": "oderwat.indent-rainbow",
+      "name": "Indent Rainbow",
+      "note": "Подсветка уровней отступов в YAML/Ansible/Bash"
+    },
+    {
+      "id": "mads-hartmann.bash-ide-vscode",
+      "name": "Bash IDE",
+      "note": "Shell language server и инструменты устанавливаются локально"
+    },
+    {
+      "id": "redhat.ansible",
+      "name": "Ansible",
+      "note": "Ansible language server и ansible-lint локально; телеметрия отключена"
+    },
+    {
+      "id": "hashicorp.terraform",
+      "name": "HashiCorp Terraform",
+      "note": "Языковой сервер поставляется для конкретной ОС и архитектуры; MCP и телеметрия выключены"
+    }
+  ]
+}

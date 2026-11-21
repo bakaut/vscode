@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Emitter, Event } from '../../../base/common/event.js';
+import product from '../../product/common/product.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { isWeb } from '../../../base/common/platform.js';
 import { IEnvironmentService } from '../../environment/common/environment.js';
@@ -32,6 +33,7 @@ export class UserDataSyncEnablementService extends Disposable implements IUserDa
 	}
 
 	isEnabled(): boolean {
+		if (product.applicationName === 'code-offline') { return false; }
 		switch (this.environmentService.sync) {
 			case 'on':
 				return true;
@@ -42,10 +44,12 @@ export class UserDataSyncEnablementService extends Disposable implements IUserDa
 	}
 
 	canToggleEnablement(): boolean {
+		if (product.applicationName === 'code-offline') { return false; }
 		return this.userDataSyncStoreManagementService.userDataSyncStore !== undefined && this.environmentService.sync === undefined;
 	}
 
 	setEnablement(enabled: boolean): void {
+		if (product.applicationName === 'code-offline') { return; }
 		if (enabled && !this.canToggleEnablement()) {
 			return;
 		}

@@ -95,7 +95,10 @@ function prepareDebPackage(arch: string) {
 					.pipe(replace('@@VERSION@@', packageJson.version + '-' + linuxPackageRevision))
 					.pipe(replace('@@ARCHITECTURE@@', debArch))
 					.pipe(replace('@@DEPENDS@@', dependencies.join(', ')))
-					.pipe(replace('@@RECOMMENDS@@', debianRecommendedDependencies.join(', ')))
+					.pipe(replace(/^Recommends: @@RECOMMENDS@@\r?\n/m, (() => {
+				const recommended = debianRecommendedDependencies.filter(dep => product.applicationName !== 'code-offline' || !['bubblewrap', 'socat'].includes(dep));
+				return recommended.length ? `Recommends: ${recommended.join(', ')}\n` : '';
+			})()))
 					.pipe(replace('@@INSTALLEDSIZE@@', Math.ceil(size / 1024).toString()))
 					.pipe(rename('DEBIAN/control'))
 					.pipe(es.through(function (f) { that.emit('data', f); }, function () { that.emit('end'); }));
@@ -211,7 +214,10 @@ function prepareRpmPackage(arch: string) {
 			.pipe(replace('@@QUALITY@@', (product as typeof product & { quality?: string }).quality || '@@QUALITY@@'))
 			.pipe(replace('@@UPDATEURL@@', (product as typeof product & { updateUrl?: string }).updateUrl || '@@UPDATEURL@@'))
 			.pipe(replace('@@DEPENDENCIES@@', dependencies.join(', ')))
-			.pipe(replace('@@RECOMMENDS@@', rpmRecommendedDependencies.join(', ')))
+			.pipe(replace(/^Recommends: @@RECOMMENDS@@\r?\n/m, (() => {
+				const recommended = rpmRecommendedDependencies.filter(dep => product.applicationName !== 'code-offline' || !['bubblewrap', 'socat'].includes(dep));
+				return recommended.length ? `Recommends: ${recommended.join(', ')}\n` : '';
+			})()))
 			.pipe(replace('@@STRIP@@', stripBinary))
 			.pipe(rename('SPECS/' + product.applicationName + '.spec'));
 

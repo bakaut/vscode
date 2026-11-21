@@ -71,7 +71,7 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 	private static CACHED_AUTHENTICATION_PROVIDER_KEY = 'userDataSyncAccountProvider';
 	private static CACHED_SESSION_STORAGE_KEY = 'userDataSyncAccountPreference';
 
-	get enabled() { return !!this.userDataSyncStoreManagementService.userDataSyncStore; }
+	get enabled() { return this.productService.applicationName !== 'code-offline' && !!this.userDataSyncStoreManagementService.userDataSyncStore; }
 
 	private _authenticationProviders: IAuthenticationProvider[] = [];
 	get authenticationProviders() { return this._authenticationProviders; }
@@ -139,7 +139,7 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 		this.hasConflicts = CONTEXT_HAS_CONFLICTS.bindTo(contextKeyService);
 		this.enableConflictsViewContext = CONTEXT_ENABLE_SYNC_CONFLICTS_VIEW.bindTo(contextKeyService);
 
-		if (this.userDataSyncStoreManagementService.userDataSyncStore) {
+		if (this.enabled) {
 			this.syncStatusContext.set(this.userDataSyncService.status);
 			this._register(userDataSyncService.onDidChangeStatus(status => this.syncStatusContext.set(status)));
 			this.syncEnablementContext.set(userDataSyncEnablementService.isEnabled());
@@ -293,6 +293,7 @@ export class UserDataSyncWorkbenchService extends Disposable implements IUserDat
 	}
 
 	async turnOn(): Promise<void> {
+		if (!this.enabled) { return; }
 		if (!this.authenticationProviders.length) {
 			throw new Error(localize('no authentication providers', "Settings sync cannot be turned on because there are no authentication providers available."));
 		}

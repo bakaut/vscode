@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import product from '../../../../platform/product/common/product.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { InstantiationType, registerSingleton } from '../../../../platform/instantiation/common/extensions.js';
 import { AbstractRequestService, AuthInfo, Credentials, IRequestService } from '../../../../platform/request/common/request.js';
@@ -32,6 +33,7 @@ export class NativeRequestService extends AbstractRequestService implements IReq
 	}
 
 	async request(options: IRequestOptions, token: CancellationToken): Promise<IRequestContext> {
+		if (product.applicationName === 'code-offline') { throw new Error('Code Offline: network requests are disabled'); }
 		if (!options.proxyAuthorization) {
 			options.proxyAuthorization = this.configurationService.inspect<string>('http.proxyAuthorization').userLocalValue;
 		}

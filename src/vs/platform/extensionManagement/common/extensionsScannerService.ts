@@ -445,6 +445,12 @@ export abstract class AbstractExtensionsScannerService extends Disposable implem
 		const extensionsScanner = extensionsScannerInput.devMode ? this.extensionsScanner : this.systemExtensionsCachedScanner;
 		const result = await extensionsScanner.scanExtensions(extensionsScannerInput);
 		this.logService.trace('Scanned system extensions:', result.length);
+		// Code Offline diagnostic: report invalid bundled manifests without changing scanner decisions.
+		for (const extension of result) {
+			if (!extension.isValid) {
+				this.logService.error('Invalid bundled extension:', extension.identifier.id, extension.location.fsPath, extension.validations);
+			}
+		}
 		return result;
 	}
 

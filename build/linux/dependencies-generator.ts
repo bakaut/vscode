@@ -12,6 +12,7 @@ import { referenceGeneratedDepsByArch as rpmGeneratedDeps } from './rpm/dep-list
 import { type DebianArchString, isDebianArchString } from './debian/types.ts';
 import { isRpmArchString, type RpmArchString } from './rpm/types.ts';
 import product from '../../product.json' with { type: 'json' };
+import { offlineDebAmd64Deps, offlineRpmX64Deps } from './offline-dependencies.ts';
 
 // A flag that can easily be toggled.
 // Make sure to compile the build directory after toggling the value.
@@ -50,14 +51,16 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 	if (findResult.status) {
 		console.error('Error finding files:');
 		console.error(findResult.stderr.toString());
-		return [];
+		throw new Error('Failed to enumerate native modules for package dependencies.');
 	}
 
 	const appPath = path.join(buildDir, applicationName);
 	// Add the native modules
 	const files = findResult.stdout.toString().trimEnd().split('\n');
 	// Add the tunnel binary.
-	files.push(path.join(buildDir, 'bin', product.tunnelApplicationName));
+	if (product.applicationName !== 'code-offline') {
+		files.push(path.join(buildDir, 'bin', product.tunnelApplicationName));
+	}
 	// Add the main executable.
 	files.push(appPath);
 	// Add chrome sandbox and crashpad handler.
@@ -82,9 +85,10 @@ export async function getDependencies(packageType: 'deb' | 'rpm', buildDir: stri
 		return !bundledDeps.some(bundledDep => dependency.startsWith(bundledDep));
 	}).sort();
 
-	const referenceGeneratedDeps = packageType === 'deb' ?
-		debianGeneratedDeps[arch as DebianArchString] :
-		rpmGeneratedDeps[arch as RpmArchString];
+	const referenceGeneratedDeps = product.applicationName === 'code-offline' && packageType === 'deb' && arch === 'amd64' ?
+		offlineDebAmd64Deps : product.applicationName === 'code-offline' && packageType === 'rpm' && arch === 'x86_64' ?
+			offlineRpmX64Deps : packageType === 'deb' ?
+			debianGeneratedDeps[arch as DebianArchString] : rpmGeneratedDeps[arch as RpmArchString];
 	if (JSON.stringify(sortedDependencies) !== JSON.stringify(referenceGeneratedDeps)) {
 		const failMessage = 'The dependencies list has changed.'
 			+ '\nOld:\n' + referenceGeneratedDeps.join('\n')

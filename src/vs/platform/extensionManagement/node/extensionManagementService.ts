@@ -150,6 +150,9 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 		try {
 			const manifest = await getManifest(path.resolve(location.fsPath));
 			const extensionId = getGalleryExtensionId(manifest.publisher, manifest.name);
+			if (this.productService.applicationName === 'code-offline' && /^github\.copilot(?:-|$)/i.test(extensionId)) {
+				throw new ExtensionManagementError('Copilot is not supported in Code Offline.', ExtensionManagementErrorCode.NotAllowed);
+			}
 			if (manifest.engines && manifest.engines.vscode && !isEngineValid(manifest.engines.vscode, this.productService.version, this.productService.date)) {
 				throw new Error(nls.localize('incompatible', "Unable to install extension '{0}' as it is not compatible with VS Code '{1}'.", extensionId, this.productService.version));
 			}
@@ -256,6 +259,9 @@ export class ExtensionManagementService extends AbstractExtensionManagementServi
 	}
 
 	private async downloadVsix(vsix: URI): Promise<{ location: URI; cleanup: () => Promise<void> }> {
+		if (this.productService.applicationName === 'code-offline' && (vsix.scheme !== Schemas.file || vsix.authority)) {
+			throw new ExtensionManagementError('Only local VSIX files are supported in Code Offline.', ExtensionManagementErrorCode.NotAllowed);
+		}
 		if (vsix.scheme === Schemas.file) {
 			return { location: vsix, async cleanup() { } };
 		}
